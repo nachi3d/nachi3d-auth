@@ -12,7 +12,8 @@
     "verify": "npm run lint && npm run typecheck && npm run build",
     "test:e2e": "playwright test",
     "db:migrate": "supabase db push",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset",
+    "sign": "tsx scripts/sign-token.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -33,6 +34,7 @@
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.5.0",
     "tailwindcss": "^4.1.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   },
   "engines": {

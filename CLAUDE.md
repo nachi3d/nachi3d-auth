@@ -200,8 +200,13 @@ chore(db): add migration for verification_logs index
   password flow). Admin gate via `profiles.is_admin` flag.
 - **Storage** — Supabase Storage bucket `piece-photos` for figurine
   images. Public read, admin-only write.
-- **HMAC** — `HMAC-SHA256(HMAC_SECRET, nfc_uid + piece_id)` truncated
-  to 24 hex chars. Constant-time compare on verification.
+- **HMAC** — `HMAC-SHA256(HMAC_SECRET, "<nfc_uid>:<piece_id>")`
+  (colon-separated payload, exactly the format in `lib/hmac.ts`),
+  truncated to the first 24 hex chars. Constant-time compare on
+  verification, after a format check rejects malformed candidates.
+  Generate URLs with `npm run sign -- <nfc_uid> <piece_id>`, which
+  imports the same `signToken()` helper as the runtime — never
+  reimplement the HMAC outside `lib/hmac.ts`.
 - **Cloudflare headers** — verification logs read `CF-IPCountry` and
   `CF-IPCity` for geo. Available only when deployed; locally they're
   null and that's fine.
