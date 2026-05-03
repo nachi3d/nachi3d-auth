@@ -296,6 +296,13 @@ Before merging any branch, verify all of these still work:
 | Locale routing | `/ar/v/<uid>?t=<token>` | Arabic strings, RTL direction |
 | NFC UID uniqueness | Insert duplicate UID | DB rejects with constraint error |
 | Piece number uniqueness | Insert duplicate piece number | DB rejects with constraint error |
+| Admin write — non-admin block | `POST /api/admin/pieces` as `is_admin=false` | 403 `forbidden` |
+| Admin write — unauthenticated block | `POST /api/admin/pieces` with no session | 401 `unauthenticated` |
+| Locked NFC UID — UI | Edit a published piece | `nfc_uid` input is disabled |
+| Locked NFC UID — server | `PATCH /api/admin/pieces/[id]` with new uid on a published piece | 409 `uid_locked` |
+| Verification token regeneration | Edit a draft piece's `nfc_uid` | `verification_token` is recomputed via `signToken()` |
+| Photo storage gate | Anonymous read of `piece-photos` bucket | Allowed (public bucket) |
+| Photo storage gate | Non-admin INSERT into `piece-photos` | Storage RLS rejects |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -325,11 +332,16 @@ known issues" — either fix or explicitly ask the user how to proceed.
 | `/[locale]/v/[uid]` | Public verification page | Public |
 | `/[locale]/me` | Owner dashboard (Phase 4) | Logged in |
 | `/[locale]/admin` | Admin home | Admin only |
-| `/[locale]/admin/pieces` | List pieces (Phase 2) | Admin only |
+| `/[locale]/admin/pieces` | Paginated list with status filter (Phase 2) | Admin only |
 | `/[locale]/admin/pieces/new` | Register piece (Phase 2) | Admin only |
-| `/[locale]/admin/pieces/[id]/edit` | Edit piece (Phase 2) | Admin only |
+| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout (Phase 2) | Admin only |
 | `/[locale]/admin/analytics` | Analytics (Phase 5) | Admin only |
 | `/[locale]/admin/flags` | Fraud flags (Phase 5) | Admin only |
+| `POST /api/admin/pieces` | JSON insert; mirrors the form server action (Phase 2) | Admin only |
+| `GET/PATCH /api/admin/pieces/[id]` | JSON fetch/update; locked-uid enforced (Phase 2) | Admin only |
+| `POST /api/admin/photos` | multipart upload to `piece-photos` bucket (Phase 2) | Admin only |
+| `DELETE /api/admin/photos` | Remove a photo from a piece + bucket (Phase 2) | Admin only |
+| `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
 
 ## Roadmap
 
