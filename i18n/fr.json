@@ -28,7 +28,68 @@
     "title": "Panneau d'administration",
     "comingSoon": "Bientôt — la phase 2 introduira l'enregistrement des pièces.",
     "signedInAs": "Connecté en tant que {email}",
-    "notAuthorized": "Vous n'avez pas accès au panneau d'administration."
+    "notAuthorized": "Vous n'avez pas accès au panneau d'administration.",
+    "managePieces": "Gérer les pièces",
+    "pieces": {
+      "listTitle": "Pièces",
+      "listSubtitle": "{total} au total",
+      "newPiece": "Nouvelle pièce",
+      "newTitle": "Enregistrer une nouvelle pièce",
+      "newSubtitle": "Enregistrez en brouillon pour ajouter des photos, ou publiez directement.",
+      "editTitle": "Modifier la pièce #{number}",
+      "createdBanner": "Pièce créée. Ajoutez des photos puis publiez lorsque vous serez prêt.",
+      "empty": "Aucune pièce pour le moment. Cliquez sur « Nouvelle pièce » pour enregistrer la première.",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "pageOf": "Page {page} sur {total}",
+      "status": {
+        "all": "Toutes",
+        "draft": "Brouillon",
+        "published": "Publiée",
+        "archived": "Archivée"
+      },
+      "form": {
+        "nfc_uid": "UID NFC",
+        "piece_number": "Numéro de pièce",
+        "edition_number": "Édition n°",
+        "edition_total": "Sur (édition de)",
+        "character_name": "Nom du personnage",
+        "character_quote": "Citation du personnage",
+        "license_status": "Licence",
+        "license_notes": "Notes de licence",
+        "sculpt_date": "Date de sculpture",
+        "paint_date": "Date de peinture",
+        "photos": "Photos",
+        "saveDraft": "Enregistrer en brouillon",
+        "publish": "Publier",
+        "saved": "Enregistré.",
+        "uidLockedHint": "L'UID NFC est verrouillé dès qu'une pièce est publiée."
+      },
+      "license": {
+        "original": "Œuvre originale",
+        "public_domain": "Domaine public",
+        "commission": "Commande",
+        "licensed": "Sous licence",
+        "other": "Autre"
+      },
+      "photos": {
+        "addPhotos": "Ajouter des photos",
+        "hero": "Vedette",
+        "delete": "Supprimer",
+        "uploading": "Téléversement",
+        "dragHint": "Glissez pour réordonner. La première photo est la vedette.",
+        "empty": "Aucune photo. Glissez des images ici ou cliquez sur « Ajouter des photos ».",
+        "addAfterCreate": "Enregistrez d'abord la pièce, puis ajoutez les photos depuis la page d'édition."
+      },
+      "nfc": {
+        "title": "Programmer la puce NFC",
+        "body": "Programmez cette URL sur la puce NTAG215 de la figurine et imprimez le QR correspondant sur le certificat."
+      },
+      "errors": {
+        "title": "Impossible d'enregistrer",
+        "fallback": "Vérifiez les champs en surbrillance."
+      }
+    }
   },
   "auth": {
     "signIn": "Se connecter",

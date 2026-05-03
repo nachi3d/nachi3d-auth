@@ -132,6 +132,35 @@ to run them against a deployed preview instead.
 `.env.local` is gitignored. Never check secrets in. Rotating
 `HMAC_SECRET` invalidates every existing chip URL.
 
+## Production deployment checklist
+
+**Required on Cloudflare Pages (production):** all five vars from the
+table above — `NEXT_PUBLIC_SITE_URL` (set to `https://verify.nachi3d.com`,
+no trailing slash), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, and `HMAC_SECRET`. The two `NEXT_PUBLIC_*`
+values are exposed to the browser by design (RLS protects the data); the
+service role key and HMAC secret are server-only and must be stored as
+encrypted Cloudflare Pages environment variables, never in
+`wrangler.toml`, never echoed in build logs. Rotating `HMAC_SECRET`
+invalidates every chip already programmed in the field — only do it as
+part of a deliberate revocation event. Also set
+`app.hmac_secret = '<HMAC_SECRET>'` on the production Postgres database
+(via `alter database postgres set app.hmac_secret = '...'` in the
+Supabase SQL editor) so the `compute_piece_verification_token()` function
+produces stored tokens that match what the runtime computes.
+
+**Must NOT be set in production:** `E2E_TEST_LOGIN_ENABLED`. This flag
+(set automatically by `playwright.config.ts` on the dev server it
+spawns) opens `POST /api/test/signin`, an endpoint that signs in any
+user given an email and password and writes a Supabase session cookie
+to the response. It is the bypass we need so Playwright can avoid
+magic-link round-trips, but in production it would let anyone with a
+known password mint a session for that account, defeating the
+magic-link-only auth posture. The route returns 404 unless the flag
+is set to exactly `1`, but the safest posture is to never set it on
+the prod environment at all — confirm it is unset on Cloudflare Pages
+before each promotion of `dev` → `main`.
+
 ## Roadmap
 
 - **Phase 1** *(this release)* — Foundation: schema, RLS, HMAC, verification page, admin gate, i18n, Playwright.

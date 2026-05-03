@@ -14,6 +14,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
+  globalSetup: process.env.PLAYWRIGHT_SKIP_AUTH_SETUP === "1"
+    ? undefined
+    : "./tests/e2e/global-setup.ts",
   use: {
     baseURL,
     trace: "on-first-retry",
@@ -34,5 +37,8 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         stdout: "pipe",
         stderr: "pipe",
+        env: {
+          E2E_TEST_LOGIN_ENABLED: "1",
+        },
       },
 });

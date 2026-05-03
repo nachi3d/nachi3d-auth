@@ -28,7 +28,68 @@
     "title": "Admin Panel",
     "comingSoon": "Coming soon — Phase 2 will introduce piece registration.",
     "signedInAs": "Signed in as {email}",
-    "notAuthorized": "You don't have access to the admin panel."
+    "notAuthorized": "You don't have access to the admin panel.",
+    "managePieces": "Manage pieces",
+    "pieces": {
+      "listTitle": "Pieces",
+      "listSubtitle": "{total} total",
+      "newPiece": "New piece",
+      "newTitle": "Register a new piece",
+      "newSubtitle": "Save as draft to upload photos, or publish straight away.",
+      "editTitle": "Edit piece #{number}",
+      "createdBanner": "Piece created. Upload photos and publish when ready.",
+      "empty": "No pieces yet. Click ‘New piece’ to register the first one.",
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}",
+      "status": {
+        "all": "All",
+        "draft": "Draft",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "form": {
+        "nfc_uid": "NFC UID",
+        "piece_number": "Piece number",
+        "edition_number": "Edition #",
+        "edition_total": "Edition of",
+        "character_name": "Character name",
+        "character_quote": "Character quote",
+        "license_status": "License",
+        "license_notes": "License notes",
+        "sculpt_date": "Sculpt date",
+        "paint_date": "Paint date",
+        "photos": "Photos",
+        "saveDraft": "Save as draft",
+        "publish": "Publish",
+        "saved": "Saved.",
+        "uidLockedHint": "NFC UID is locked once a piece is published."
+      },
+      "license": {
+        "original": "Original work",
+        "public_domain": "Public domain",
+        "commission": "Commission",
+        "licensed": "Licensed",
+        "other": "Other"
+      },
+      "photos": {
+        "addPhotos": "Add photos",
+        "hero": "Hero",
+        "delete": "Delete",
+        "uploading": "Uploading",
+        "dragHint": "Drag to reorder. The first photo is the hero.",
+        "empty": "No photos yet. Drag images here or click ‘Add photos’.",
+        "addAfterCreate": "Save the piece first, then upload photos on the edit page."
+      },
+      "nfc": {
+        "title": "Write to NFC chip",
+        "body": "Program this URL onto the figurine's NTAG215 chip and print the matching QR onto the certificate card."
+      },
+      "errors": {
+        "title": "Couldn't save",
+        "fallback": "Please review the highlighted fields."
+      }
+    }
   },
   "auth": {
     "signIn": "Sign in",
