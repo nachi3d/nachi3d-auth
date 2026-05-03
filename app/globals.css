@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+
+  --color-ink-50: #fafaf7;
+  --color-ink-100: #f1f1ec;
+  --color-ink-200: #d8d8d2;
+  --color-ink-300: #9a9a93;
+  --color-ink-400: #6b6b65;
+  --color-ink-500: #4a4a45;
+  --color-ink-600: #2e2e2a;
+  --color-ink-700: #1f1f1c;
+  --color-ink-800: #141412;
+  --color-ink-900: #0a0a09;
+
+  --color-brass-300: #d9c08a;
+  --color-brass-400: #c9a55a;
+  --color-brass-500: #a98842;
+  --color-brass-600: #8a6e34;
+}
+
+html {
+  background: var(--color-ink-900);
+  color: var(--color-ink-100);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html[dir="rtl"] body {
+  font-family:
+    "Noto Sans Arabic", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+::selection {
+  background: var(--color-brass-400);
+  color: var(--color-ink-900);
+}
