@@ -92,6 +92,13 @@ export default async function EditPiecePage({
         >
           {verificationUrl}
         </code>
+        <a
+          href={`/api/admin/cards/${piece.id}`}
+          data-testid="card-pdf-link"
+          className="mt-4 inline-block rounded-sm border border-ink-600 px-4 py-2 text-sm text-ink-100 transition hover:border-brass-400 hover:text-brass-400"
+        >
+          {tNfc("downloadCard")}
+        </a>
       </section>
 
       <PieceForm
