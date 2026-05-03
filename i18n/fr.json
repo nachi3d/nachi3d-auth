@@ -1,0 +1,38 @@
+{
+  "site": {
+    "name": "Nachi3D Certify",
+    "tagline": "L'art de collection authentifié par Nachi3D"
+  },
+  "landing": {
+    "title": "Nachi3D Certify",
+    "subtitle": "Chaque figurine Nachi3D contient une puce NFC et un certificat imprimé. Touchez ou scannez pour vérifier une pièce.",
+    "howItWorks": "Comment ça marche",
+    "step1": "Approchez votre téléphone de la puce intégrée à la base de la figurine, ou scannez le QR du certificat.",
+    "step2": "Vous arriverez sur ce site, sur une page propre à cette pièce.",
+    "step3": "Si la page affiche le numéro, les photos et la provenance, la pièce est authentique.",
+    "learnMore": "En savoir plus sur nachi3d.com"
+  },
+  "verify": {
+    "pieceNumber": "Pièce",
+    "edition": "Édition {n} sur {total}",
+    "character": "Personnage",
+    "sculptDate": "Sculptée",
+    "paintDate": "Peinte",
+    "authenticated": "Authentifiée",
+    "tamperTitle": "Échec de vérification",
+    "tamperBody": "Cette URL n'a pas passé notre contrôle d'authenticité. La puce a peut-être été clonée ou l'URL modifiée. Si vous pensez qu'il s'agit d'une véritable pièce Nachi3D, contactez-nous à hello@nachi3d.com.",
+    "notFoundTitle": "Pièce introuvable",
+    "notFoundBody": "Aucune pièce Nachi3D ne correspond à ce code. Vérifiez que vous avez bien scanné une figurine Nachi3D et réessayez."
+  },
+  "admin": {
+    "title": "Panneau d'administration",
+    "comingSoon": "Bientôt — la phase 2 introduira l'enregistrement des pièces.",
+    "signedInAs": "Connecté en tant que {email}",
+    "notAuthorized": "Vous n'avez pas accès au panneau d'administration."
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "loginRequired": "Veuillez vous connecter pour continuer."
+  }
+}

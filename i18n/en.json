@@ -1,0 +1,38 @@
+{
+  "site": {
+    "name": "Nachi3D Certify",
+    "tagline": "Authenticated collectible art from Nachi3D"
+  },
+  "landing": {
+    "title": "Nachi3D Certify",
+    "subtitle": "Every Nachi3D figurine carries an embedded NFC chip and a printed certificate. Tap or scan to verify a piece.",
+    "howItWorks": "How it works",
+    "step1": "Tap your phone to the chip embedded in the figurine's base, or scan the QR on the certificate card.",
+    "step2": "You'll land on this site, on a page unique to that piece.",
+    "step3": "If the page shows the piece's number, photos, and provenance, it's authentic.",
+    "learnMore": "Learn more at nachi3d.com"
+  },
+  "verify": {
+    "pieceNumber": "Piece",
+    "edition": "Edition {n} of {total}",
+    "character": "Character",
+    "sculptDate": "Sculpted",
+    "paintDate": "Painted",
+    "authenticated": "Authenticated",
+    "tamperTitle": "Verification failed",
+    "tamperBody": "This URL did not pass our authenticity check. The chip may have been cloned or the URL altered. If you believe this is a genuine Nachi3D piece, contact us at hello@nachi3d.com.",
+    "notFoundTitle": "Piece not found",
+    "notFoundBody": "We couldn't find a Nachi3D piece for this code. Make sure you scanned a Nachi3D figurine and try again."
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "comingSoon": "Coming soon — Phase 2 will introduce piece registration.",
+    "signedInAs": "Signed in as {email}",
+    "notAuthorized": "You don't have access to the admin panel."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "loginRequired": "Please sign in to continue."
+  }
+}
