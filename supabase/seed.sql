@@ -113,9 +113,11 @@ update public.profiles
 
 -- ---------------------------------------------------------------------------
 -- One published piece used by Phase 1 verification specs.
--- The verification_token column is a placeholder; the runtime check
--- recomputes the HMAC from HMAC_SECRET + nfc_uid + piece_id and compares
--- to the URL's `t` parameter.
+-- verification_token is computed via public.compute_piece_verification_token,
+-- which reads app.hmac_secret and uses pgcrypto to mirror lib/hmac.ts. If the
+-- GUC is unset, the result is computed with an empty key — the runtime never
+-- trusts the stored value (it always recomputes), so this is harmless for
+-- tests, which sign their own tokens via the JS helper.
 -- ---------------------------------------------------------------------------
 
 insert into public.pieces (
@@ -128,7 +130,10 @@ insert into public.pieces (
   '00000000-0000-0000-0000-000000000001',
   1, 1, 10,
   '04A1B2C3D4E580',
-  'placeholder-recomputed-at-runtime',
+  public.compute_piece_verification_token(
+    '04A1B2C3D4E580',
+    '00000000-0000-0000-0000-000000000001'::uuid
+  ),
   'Test Subject',
   'Authenticity is what you carry, not what you claim.',
   'original',
@@ -141,6 +146,7 @@ on conflict (id) do update set
   edition_number = excluded.edition_number,
   edition_total = excluded.edition_total,
   nfc_uid = excluded.nfc_uid,
+  verification_token = excluded.verification_token,
   character_name = excluded.character_name,
   character_quote = excluded.character_quote,
   license_status = excluded.license_status,
