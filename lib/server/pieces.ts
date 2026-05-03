@@ -200,6 +200,35 @@ export function cardCachePath(pieceId: string): string {
   return `${pieceId}.pdf`;
 }
 
+/**
+ * Invariant: any function that mutates a piece's card-rendered fields
+ * MUST call invalidateCardCache(id) on success — otherwise the next
+ * GET /api/admin/cards/[id] will serve a stale PDF from the bucket.
+ *
+ * Card-rendered fields (everything the certificate shows or signs):
+ *   - piece_number       (front, large mono)
+ *   - edition_number     (front, "n/total" inline)
+ *   - edition_total      (front + back metadata)
+ *   - nfc_uid            (signs the embedded QR; back metadata)
+ *   - verification_token (recomputed, embedded in QR)
+ *   - character_name     (front, serif)
+ *   - character_quote    (front pull-quote)
+ *   - sculpt_date        (back metadata)
+ *   - paint_date         (back metadata)
+ *   - photos             (Phase 4+ may render hero on the card)
+ *
+ * Today this invariant is upheld by updatePiece() (this module). Phase 5
+ * background workflows — bulk imports, owner transfers, scheduled
+ * republishes, anything that bypasses updatePiece() — MUST call this
+ * helper themselves. If you find yourself writing to public.pieces and
+ * not calling this, write a wrapper instead and route the new path
+ * through it.
+ *
+ * Mutations to license_status / license_notes / current_owner_id /
+ * status by themselves do NOT change the rendered card and don't need
+ * invalidation; updatePiece still invalidates unconditionally because
+ * the marginal cost is ~one storage delete per save.
+ */
 export async function invalidateCardCache(pieceId: string): Promise<void> {
   const supabase = createAdminClient();
   // Storage remove is idempotent — non-existent files yield an error which
