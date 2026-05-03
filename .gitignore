@@ -61,7 +61,8 @@ supabase/.temp
 # OS
 .DS_Store
 
-# Bundled fonts for the card PDF (download via `npm run fetch:fonts`).
-# All four are SIL OFL 1.1; we don't commit large TTF binaries.
-public/fonts/*.ttf
-public/fonts/*.otf
+# Note: public/fonts/*.ttf are committed (SIL OFL 1.1, embedding
+# permitted). Use `npm run fetch:fonts` only when bumping versions.
+
+# Local smoke-script output (e.g. scripts/smoke-card-pdf.ts → sample-card.pdf)
+scripts/.tmp/

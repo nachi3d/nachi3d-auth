@@ -161,6 +161,25 @@ is set to exactly `1`, but the safest posture is to never set it on
 the prod environment at all — confirm it is unset on Cloudflare Pages
 before each promotion of `dev` → `main`.
 
+## Card PDF fonts
+
+The four typefaces used by the certificate-card PDF generator
+(Inter, Cormorant Garamond, JetBrains Mono, Noto Sans Arabic) are
+checked in under `public/fonts/`. All are SIL Open Font License 1.1
+— embedding into documents is permitted. The matching `OFL-*.txt`
+license texts ship next to the TTFs as required by the licence.
+
+Fresh clones and CI builds produce real-typography PDFs without any
+extra step. To bump a version after upstream fixes, delete the file
+and run:
+
+```bash
+npm run fetch:fonts        # idempotent; redownloads any missing font
+```
+
+The script pulls from `github.com/google/fonts` and rejects the
+build if a URL 404s — never substitute a non-OFL family.
+
 ## Roadmap
 
 - **Phase 1** *(this release)* — Foundation: schema, RLS, HMAC, verification page, admin gate, i18n, Playwright.

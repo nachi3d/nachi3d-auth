@@ -5,15 +5,15 @@ import fs from "node:fs/promises";
 /**
  * Custom-font loading for the card PDF. The four fonts the card design
  * needs are SIL OFL-licensed (embedding permitted): Inter, Cormorant
- * Garamond, JetBrains Mono, and Noto Sans Arabic. They are not committed
- * to the repo (binary, ~2 MB each) — run `npm run fetch:fonts` once on
- * any environment that should render the card with the real typography.
+ * Garamond, JetBrains Mono, and Noto Sans Arabic. The TTFs ship in
+ * public/fonts/ alongside the OFL.txt files. `npm run fetch:fonts` is
+ * available for upgrading to a newer upstream release, but is not a
+ * required setup step — fresh clones already have everything they need.
  *
- * If a TTF is missing, we fall back to the matching standard PDF font
- * (Helvetica / Times-Roman / Times-Italic / Courier) so build, tests,
- * and dev environments still produce a valid PDF. The card looks plain
- * in that case but every other guarantee (magic bytes, QR, layout)
- * still holds.
+ * If a TTF is missing (e.g. a developer deleted one mid-upgrade), we
+ * fall back to the matching standard PDF font (Helvetica / Times-Roman
+ * / Times-Italic / Courier) so the route still produces a valid PDF
+ * and tests don't go red. The card looks plain in that case.
  */
 
 export const FONT_DIR = path.resolve(process.cwd(), "public", "fonts");

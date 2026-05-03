@@ -1,12 +1,13 @@
 #!/usr/bin/env tsx
 /**
- * Download the SIL OFL TTF files used by the card PDF generator.
+ * Download/refresh the SIL OFL TTF files used by the card PDF generator.
  *
  *   npm run fetch:fonts
  *
- * Files land in public/fonts/ (gitignored). Run once per environment
- * that needs to render the certificate card with the real typography —
- * dev machines, CI, and the Cloudflare Pages build.
+ * Files land in public/fonts/ — they are committed to the repo, so
+ * fresh clones and CI builds do NOT need to run this script. Use it
+ * only to bump versions after an upstream release (delete a TTF first
+ * to force re-download).
  *
  * All four families are SIL Open Font License 1.1, which explicitly
  * permits embedding into documents. URLs point at github.com/google/fonts
@@ -40,13 +41,14 @@ const FONTS: FontDownload[] = [
   },
   {
     filename: "CormorantGaramond-Regular.ttf",
-    url: "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-Regular.ttf",
-    notes: "Cormorant Garamond Regular.",
+    url: "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf",
+    notes:
+      "Cormorant Garamond — variable font (wght axis). Same TTF used as the regular instance.",
   },
   {
     filename: "CormorantGaramond-Italic.ttf",
-    url: "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-Italic.ttf",
-    notes: "Cormorant Garamond Italic — used for the pull-quote.",
+    url: "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/CormorantGaramond-Italic%5Bwght%5D.ttf",
+    notes: "Cormorant Garamond Italic variable — used for the pull-quote.",
   },
   {
     filename: "JetBrainsMono-Regular.ttf",
@@ -83,13 +85,59 @@ async function downloadOne(font: FontDownload): Promise<void> {
   process.stdout.write(`${(buf.byteLength / 1024).toFixed(0)} KB\n`);
 }
 
+interface LicenseDownload {
+  filename: string;
+  url: string;
+}
+
+const LICENSES: LicenseDownload[] = [
+  {
+    filename: "OFL-Inter.txt",
+    url: "https://github.com/google/fonts/raw/main/ofl/inter/OFL.txt",
+  },
+  {
+    filename: "OFL-CormorantGaramond.txt",
+    url: "https://github.com/google/fonts/raw/main/ofl/cormorantgaramond/OFL.txt",
+  },
+  {
+    filename: "OFL-JetBrainsMono.txt",
+    url: "https://github.com/google/fonts/raw/main/ofl/jetbrainsmono/OFL.txt",
+  },
+  {
+    filename: "OFL-NotoSansArabic.txt",
+    url: "https://github.com/google/fonts/raw/main/ofl/notosansarabic/OFL.txt",
+  },
+];
+
+async function downloadLicense(license: LicenseDownload): Promise<void> {
+  const dest = path.join(FONT_DIR, license.filename);
+  try {
+    await fs.access(dest);
+    return;
+  } catch {
+    /* not yet downloaded */
+  }
+  process.stdout.write(`↓ ${license.filename} ... `);
+  const res = await fetch(license.url, { redirect: "follow" });
+  if (!res.ok) {
+    process.stdout.write(`FAILED (${res.status})\n`);
+    throw new Error(`Could not fetch ${license.url}: HTTP ${res.status}`);
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  await fs.writeFile(dest, buf);
+  process.stdout.write(`${(buf.byteLength / 1024).toFixed(1)} KB\n`);
+}
+
 async function main() {
   await fs.mkdir(FONT_DIR, { recursive: true });
   for (const font of FONTS) {
     await downloadOne(font);
   }
+  for (const license of LICENSES) {
+    await downloadLicense(license);
+  }
   process.stdout.write(
-    `\nDone. Files in ${FONT_DIR}.\nThese are SIL OFL 1.1 — embedding permitted.\n`,
+    `\nDone. Files in ${FONT_DIR}.\nAll fonts SIL OFL 1.1 — embedding permitted; license texts beside the TTFs.\n`,
   );
 }
 
