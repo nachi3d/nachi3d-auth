@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { redirect, notFound } from "next/navigation";
 import { isLocale } from "@/i18n/routing";
@@ -63,7 +64,15 @@ export default async function AdminPage({ params }: AdminPageProps) {
       <h1 className="text-3xl font-serif font-light text-ink-50 md:text-4xl">
         {t("title")}
       </h1>
-      <p className="mt-6 text-ink-300">{t("comingSoon")}</p>
+      <nav className="mt-10 grid gap-3">
+        <Link
+          href={`/${locale}/admin/pieces`}
+          className="rounded-sm border border-ink-700 px-5 py-4 text-ink-100 transition hover:border-brass-400 hover:text-brass-400"
+        >
+          → {t("managePieces")}
+        </Link>
+      </nav>
+
       <p className="mt-12 text-xs text-ink-500">
         {t("signedInAs", { email: user.email ?? "" })}
       </p>
