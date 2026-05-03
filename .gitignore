@@ -60,3 +60,8 @@ supabase/.temp
 
 # OS
 .DS_Store
+
+# Bundled fonts for the card PDF (download via `npm run fetch:fonts`).
+# All four are SIL OFL 1.1; we don't commit large TTF binaries.
+public/fonts/*.ttf
+public/fonts/*.otf

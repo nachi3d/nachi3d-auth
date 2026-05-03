@@ -187,7 +187,52 @@ export async function updatePiece(
     throw new PieceServerError(500, "db_error", error.message);
   }
 
+  // Invalidate the cached card PDF — any field change can affect the card,
+  // and recomputing on first GET is cheap enough to not bother diffing.
+  await invalidateCardCache(id);
+
   return updated as PieceRow;
+}
+
+const CARDS_BUCKET = "cards";
+
+export function cardCachePath(pieceId: string): string {
+  return `${pieceId}.pdf`;
+}
+
+export async function invalidateCardCache(pieceId: string): Promise<void> {
+  const supabase = createAdminClient();
+  // Storage remove is idempotent — non-existent files yield an error which
+  // we deliberately swallow because "nothing to invalidate" is a success.
+  await supabase.storage.from(CARDS_BUCKET).remove([cardCachePath(pieceId)]);
+}
+
+export async function getCachedCardPdf(
+  pieceId: string,
+): Promise<Uint8Array | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage
+    .from(CARDS_BUCKET)
+    .download(cardCachePath(pieceId));
+  if (error || !data) return null;
+  const arrayBuffer = await data.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
+}
+
+export async function putCardPdf(
+  pieceId: string,
+  bytes: Uint8Array,
+): Promise<void> {
+  const supabase = createAdminClient();
+  const { error } = await supabase.storage
+    .from(CARDS_BUCKET)
+    .upload(cardCachePath(pieceId), bytes, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+  if (error) {
+    throw new PieceServerError(500, "storage_error", error.message);
+  }
 }
 
 export async function uploadPhoto(
