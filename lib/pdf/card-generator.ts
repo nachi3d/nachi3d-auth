@@ -10,6 +10,7 @@ import fontkit from "@pdf-lib/fontkit";
 import QRCode from "qrcode";
 import { signToken } from "@/lib/hmac";
 import { readAllFonts } from "./fonts";
+import { shapeArabic, toRtlVisualOrder } from "./arabic-shaper";
 import type { PieceRow } from "@/lib/supabase/types";
 
 // All measurements in points; pdf-lib's native unit. 1 mm = 2.83464645 pt.
@@ -365,19 +366,22 @@ function drawBack(
     y -= 12;
   }
 
-  // AR notice — drawn right-aligned. Note: pdf-lib does not perform Arabic
-  // shaping; for properly-shaped output, fetch the Noto Sans Arabic TTF
-  // (npm run fetch:fonts) and render the pre-shaped string in opts.notices.ar
-  // — most modern OS text engines already produce shaped UTF-8.
+  // AR notice — pdf-lib has no shaping/bidi engine, so we shape the
+  // Arabic letters into Presentation Forms-B (FE70–FEFF, which the
+  // Noto Sans Arabic cmap maps directly to connected glyphs) and
+  // then reorder each wrapped line for RTL drawing. Verified via the
+  // smoke script + pdf-parse round-trip (Phase 3 chore commit).
   y -= 8;
+  const shapedAr = shapeArabic(opts.notices.ar);
   for (const line of wrapToLines(
-    opts.notices.ar,
+    shapedAr,
     fonts.arabicRegular,
     9,
     noticeWidth,
   )) {
-    const w = fonts.arabicRegular.widthOfTextAtSize(line, 9);
-    page.drawText(line, {
+    const visual = toRtlVisualOrder(line);
+    const w = fonts.arabicRegular.widthOfTextAtSize(visual, 9);
+    page.drawText(visual, {
       x: PAGE_WIDTH - SAFE_MARGIN - w,
       y,
       size: 9,
