@@ -38,7 +38,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 
   return (
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
-      <body className="min-h-screen bg-ink-900 text-ink-100 font-sans antialiased">
+      <body className="min-h-screen bg-dark-950 text-dark-text-100 font-sans antialiased">
         <NextIntlClientProvider messages={messages} locale={locale}>
           {children}
         </NextIntlClientProvider>
