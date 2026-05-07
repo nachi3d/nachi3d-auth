@@ -38,3 +38,66 @@ html[dir="rtl"] body {
   background: var(--color-brass-400);
   color: var(--color-ink-900);
 }
+
+/* Subtle fade-in for the AuthenticatedSeal on /v/[uid]. */
+@keyframes nachi-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nachi-fade-in {
+  animation: nachi-fade-in 600ms ease-out 120ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nachi-fade-in {
+    animation: none;
+  }
+}
+
+/* Print stylesheet for /v/[uid]. Drops the dark background, hides
+   navigation/CTAs, and resizes the piece-number hero so it doesn't
+   bleed off the page. The carousel collapses to its current image. */
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0a0a09 !important;
+  }
+
+  .nachi-print-hide,
+  [data-testid="claim-cta"],
+  [data-testid="carousel-prev"],
+  [data-testid="carousel-next"],
+  [data-testid="carousel-thumbs"],
+  [data-testid="carousel-dots"] {
+    display: none !important;
+  }
+
+  [data-testid="verification-piece-card"] {
+    color: #0a0a09 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  [data-testid="verification-piece-card"] * {
+    color: inherit !important;
+    background: transparent !important;
+    border-color: #0a0a09 !important;
+  }
+
+  [data-testid="hero-carousel"] {
+    page-break-inside: avoid;
+    aspect-ratio: 4 / 3;
+  }
+
+  [data-testid="verification-piece-number"] {
+    font-size: 36pt !important;
+  }
+}

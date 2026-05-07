@@ -15,14 +15,39 @@
   "verify": {
     "pieceNumber": "Piece",
     "edition": "Edition {n} of {total}",
+    "editionShort": "{n}/{total}",
     "character": "Character",
     "sculptDate": "Sculpted",
     "paintDate": "Painted",
-    "authenticated": "Authenticated",
-    "tamperTitle": "Verification failed",
-    "tamperBody": "This URL did not pass our authenticity check. The chip may have been cloned or the URL altered. If you believe this is a genuine Nachi3D piece, contact us at hello@nachi3d.com.",
+    "authenticated": "Authenticated by Nachi3D Certify",
+    "emptyHero": "Photo coming soon",
+    "tamperTitle": "This URL has been altered",
+    "tamperBody": "This URL did not pass our authenticity check. The chip may have been cloned or the link tampered with. If you believe this is a genuine Nachi3D piece, contact us at hello@nachi3d.com.",
+    "supportEmailCta": "Email hello@nachi3d.com",
     "notFoundTitle": "Piece not found",
-    "notFoundBody": "We couldn't find a Nachi3D piece for this code. Make sure you scanned a Nachi3D figurine and try again."
+    "notFoundBody": "We couldn't find a Nachi3D piece for this code. Make sure you scanned a Nachi3D figurine and try again.",
+    "timeline": {
+      "title": "Provenance",
+      "empty": "No provenance events yet.",
+      "types": {
+        "created": "Created",
+        "claimed": "Claimed",
+        "transferred": "Transferred",
+        "note": "Note"
+      }
+    },
+    "claim": {
+      "title": "Own this piece?",
+      "body": "Claim it to your Nachi3D account so future taps show you as the owner, and so you can transfer it cleanly if you ever resell.",
+      "buttonLabel": "Claim this piece"
+    }
+  },
+  "claim": {
+    "comingSoon": {
+      "title": "Claim flow — coming soon",
+      "body": "Owner claims will be available in the next release. We'll send a magic link to your email to verify ownership without a password.",
+      "back": "Back to home"
+    }
   },
   "admin": {
     "title": "Admin Panel",
@@ -83,7 +108,8 @@
       },
       "nfc": {
         "title": "Write to NFC chip",
-        "body": "Program this URL onto the figurine's NTAG215 chip and print the matching QR onto the certificate card."
+        "body": "Program this URL onto the figurine's NTAG215 chip and print the matching QR onto the certificate card.",
+        "downloadCard": "Generate card PDF"
       },
       "errors": {
         "title": "Couldn't save",

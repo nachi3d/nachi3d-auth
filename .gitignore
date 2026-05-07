@@ -54,9 +54,16 @@ yarn-error.log*
 .idea/
 *.swp
 
-# Supabase local stack
+# Supabase — Studio snippets are local scratch (often contain secrets)
 supabase/.branches
 supabase/.temp
+supabase/snippets/
 
 # OS
 .DS_Store
+
+# Note: public/fonts/*.ttf are committed (SIL OFL 1.1, embedding
+# permitted). Use `npm run fetch:fonts` only when bumping versions.
+
+# Local smoke-script output (e.g. scripts/smoke-card-pdf.ts → sample-card.pdf)
+scripts/.tmp/

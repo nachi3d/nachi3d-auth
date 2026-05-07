@@ -21,6 +21,31 @@ and stores the canonical record of every piece I produce.
 | Email (Phase 4) | Resend |
 | PDF (Phase 3) | `pdf-lib` |
 
+## Supabase: remote-only
+
+**This project does NOT use a local Supabase stack.** There is no
+`supabase start`, no Docker, no `127.0.0.1:54321`. Every environment
+(dev, CI, production) talks to the hosted project
+[`dxxwtjtjrslhsljnkiik`](https://supabase.com/dashboard/project/dxxwtjtjrslhsljnkiik)
+via the URL + anon + service-role keys in `.env.local`.
+
+Schema changes are versioned in `supabase/migrations/` and applied with:
+
+```bash
+npm run db:push          # supabase db push      — apply pending migrations
+npm run db:reset         # supabase db reset --linked  — DESTRUCTIVE replay
+```
+
+The CLI must be linked once per clone:
+
+```bash
+npx supabase link --project-ref dxxwtjtjrslhsljnkiik
+```
+
+Do **not** run `supabase start`, `supabase db reset` (without `--linked`),
+or any command that spins up local containers — they are unsupported and
+will produce a stack that diverges from the remote schema.
+
 ## Quickstart
 
 ```bash
@@ -36,11 +61,10 @@ cp .env.example .env.local
 #    SUPABASE_SERVICE_ROLE_KEY
 #    HMAC_SECRET   <-- generate: openssl rand -hex 32
 
-# 3. Apply migrations to your Supabase project
-npm run db:migrate
-# Or for fully-local stack:
-#   npx supabase start
-#   npm run db:reset    # drops, re-applies migrations + seed.sql
+# 3. Apply migrations to the REMOTE Supabase project (no local Docker stack)
+npm run db:push
+# To wipe + replay every migration on the remote (DESTRUCTIVE):
+#   npm run db:reset    # runs `supabase db reset --linked`
 
 # 4. Dev
 npm run dev
@@ -160,6 +184,25 @@ magic-link-only auth posture. The route returns 404 unless the flag
 is set to exactly `1`, but the safest posture is to never set it on
 the prod environment at all — confirm it is unset on Cloudflare Pages
 before each promotion of `dev` → `main`.
+
+## Card PDF fonts
+
+The four typefaces used by the certificate-card PDF generator
+(Inter, Cormorant Garamond, JetBrains Mono, Noto Sans Arabic) are
+checked in under `public/fonts/`. All are SIL Open Font License 1.1
+— embedding into documents is permitted. The matching `OFL-*.txt`
+license texts ship next to the TTFs as required by the licence.
+
+Fresh clones and CI builds produce real-typography PDFs without any
+extra step. To bump a version after upstream fixes, delete the file
+and run:
+
+```bash
+npm run fetch:fonts        # idempotent; redownloads any missing font
+```
+
+The script pulls from `github.com/google/fonts` and rejects the
+build if a URL 404s — never substitute a non-OFL family.
 
 ## Roadmap
 

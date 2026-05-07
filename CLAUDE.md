@@ -303,6 +303,13 @@ Before merging any branch, verify all of these still work:
 | Verification token regeneration | Edit a draft piece's `nfc_uid` | `verification_token` is recomputed via `signToken()` |
 | Photo storage gate | Anonymous read of `piece-photos` bucket | Allowed (public bucket) |
 | Photo storage gate | Non-admin INSERT into `piece-photos` | Storage RLS rejects |
+| Card PDF — happy path | `GET /api/admin/cards/[id]` as admin | 200, `Content-Type: application/pdf`, body starts with `%PDF-`, `Content-Disposition: attachment; filename="nachi3d-certify-piece-XXXX.pdf"` |
+| Card PDF — cache | Two consecutive `GET /api/admin/cards/[id]` | Second response has `X-Cache: HIT` |
+| Card PDF — invalidation | Edit any field of a piece via `updatePiece()` | Cached PDF in `cards/<id>.pdf` is removed |
+| Card PDF — non-admin | `GET /api/admin/cards/[id]` as `is_admin=false` | 403 |
+| Card PDF — anonymous | `GET /api/admin/cards/[id]` with no session | 401 |
+| Tamper page — no data leak | Bad token on `/v/<uid>` | Response HTML contains zero `character_name`, `character_quote`, `#NNNN`, or piece OG meta — re-asserted in tests |
+| OG meta on `/v/[uid]` | Valid token | `og:title`, `og:description`, `og:type`, `og:site_name`, `twitter:card` present and reference the piece |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -341,6 +348,8 @@ known issues" — either fix or explicitly ask the user how to proceed.
 | `GET/PATCH /api/admin/pieces/[id]` | JSON fetch/update; locked-uid enforced (Phase 2) | Admin only |
 | `POST /api/admin/photos` | multipart upload to `piece-photos` bucket (Phase 2) | Admin only |
 | `DELETE /api/admin/photos` | Remove a photo from a piece + bucket (Phase 2) | Admin only |
+| `GET /api/admin/cards/[id]` | A6 PDF certificate, cached in `cards` bucket (Phase 3) | Admin only |
+| `/[locale]/claim/coming-soon` | Placeholder for the Phase 4 claim flow | Public |
 | `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
 
 ## Roadmap
@@ -383,10 +392,27 @@ known issues" — either fix or explicitly ask the user how to proceed.
 
 ## Supabase Notes
 
-- Migrations: `supabase/migrations/<timestamp>_<name>.sql`. Apply with
-  `npx supabase db push` or via the Supabase dashboard SQL editor.
-- Local dev: `npx supabase start` spins up a local Postgres + Auth
-  emulator for offline work. Seed via `supabase/seed.sql`.
+**Remote-only.** This project does NOT use a local Supabase Docker
+stack. There is no `supabase start`, no local Postgres on
+`127.0.0.1:54322`, no Studio on `:54323`. Every environment talks
+to the hosted project `dxxwtjtjrslhsljnkiik` via the keys in
+`.env.local` (URL + anon + service-role). If you find yourself running
+`supabase start`, stop and re-read this section — that is not the
+workflow here.
+
+- Migrations: `supabase/migrations/<timestamp>_<name>.sql`. Apply to
+  the remote with `npm run db:push` (wraps `supabase db push`) or via
+  the Supabase dashboard SQL editor.
+- Reset: `npm run db:reset` runs `supabase db reset --linked` — this is
+  **destructive** and replays every migration against the remote
+  database. Never run plain `supabase db reset` (no flag) — that
+  targets a local stack we do not run.
+- Linking: a fresh clone must be linked once with
+  `npx supabase link --project-ref dxxwtjtjrslhsljnkiik` before
+  `db push` / `db reset --linked` will work.
+- Seed data: `supabase/seed.sql` is reference-only. Local-stack seeding
+  is not supported; insert seed rows on the remote via the SQL editor
+  or a one-off migration if you need them in dev.
 - Service-role key: only used server-side (in `lib/supabase/admin.ts`),
   never exposed to the client. Used for verification log inserts that
   bypass RLS.
