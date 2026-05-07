@@ -21,6 +21,31 @@ and stores the canonical record of every piece I produce.
 | Email (Phase 4) | Resend |
 | PDF (Phase 3) | `pdf-lib` |
 
+## Supabase: remote-only
+
+**This project does NOT use a local Supabase stack.** There is no
+`supabase start`, no Docker, no `127.0.0.1:54321`. Every environment
+(dev, CI, production) talks to the hosted project
+[`dxxwtjtjrslhsljnkiik`](https://supabase.com/dashboard/project/dxxwtjtjrslhsljnkiik)
+via the URL + anon + service-role keys in `.env.local`.
+
+Schema changes are versioned in `supabase/migrations/` and applied with:
+
+```bash
+npm run db:push          # supabase db push      — apply pending migrations
+npm run db:reset         # supabase db reset --linked  — DESTRUCTIVE replay
+```
+
+The CLI must be linked once per clone:
+
+```bash
+npx supabase link --project-ref dxxwtjtjrslhsljnkiik
+```
+
+Do **not** run `supabase start`, `supabase db reset` (without `--linked`),
+or any command that spins up local containers — they are unsupported and
+will produce a stack that diverges from the remote schema.
+
 ## Quickstart
 
 ```bash
@@ -36,11 +61,10 @@ cp .env.example .env.local
 #    SUPABASE_SERVICE_ROLE_KEY
 #    HMAC_SECRET   <-- generate: openssl rand -hex 32
 
-# 3. Apply migrations to your Supabase project
-npm run db:migrate
-# Or for fully-local stack:
-#   npx supabase start
-#   npm run db:reset    # drops, re-applies migrations + seed.sql
+# 3. Apply migrations to the REMOTE Supabase project (no local Docker stack)
+npm run db:push
+# To wipe + replay every migration on the remote (DESTRUCTIVE):
+#   npm run db:reset    # runs `supabase db reset --linked`
 
 # 4. Dev
 npm run dev

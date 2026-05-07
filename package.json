@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit",
     "verify": "npm run lint && npm run typecheck && npm run build",
     "test:e2e": "playwright test",
-    "db:migrate": "supabase db push",
-    "db:reset": "supabase db reset",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset --linked",
     "sign": "tsx scripts/sign-token.ts",
     "fetch:fonts": "tsx scripts/fetch-fonts.ts"
   },
