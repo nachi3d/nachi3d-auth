@@ -165,7 +165,13 @@ export default async function VerifyPage({
         authenticated: t("authenticated"),
         sculptDate: t("sculptDate"),
         paintDate: t("paintDate"),
-        edition: t("editionShort"),
+        edition:
+          piece.edition_number !== null && piece.edition_total !== null
+            ? t("editionShort", {
+                n: piece.edition_number,
+                total: piece.edition_total,
+              })
+            : null,
         emptyHero: t("emptyHero"),
         timeline: {
           title: t("timeline.title"),
@@ -195,7 +201,7 @@ interface ViewProps {
     authenticated: string;
     sculptDate: string;
     paintDate: string;
-    edition: string;
+    edition: string | null;
     emptyHero: string;
     timeline: {
       title: string;
@@ -252,14 +258,12 @@ function PieceVerificationView({
         className="font-mono text-5xl tracking-tight text-ink-50 md:text-6xl"
       >
         #{pad4(piece.piece_number)}
-        {piece.edition_number !== null && piece.edition_total !== null ? (
+        {labels.edition ? (
           <span
             data-testid="verification-edition"
             className="ml-3 text-2xl text-ink-400 md:text-3xl"
           >
-            {labels.edition
-              .replace("{n}", String(piece.edition_number))
-              .replace("{total}", String(piece.edition_total))}
+            {labels.edition}
           </span>
         ) : null}
       </p>
