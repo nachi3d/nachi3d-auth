@@ -81,7 +81,7 @@ export function HeroCarousel({ photos, alt, emptyLabel }: HeroCarouselProps) {
       <div
         data-testid="hero-carousel"
         data-empty="true"
-        className="mb-10 flex aspect-[4/5] items-center justify-center rounded-sm border border-dashed border-ink-700 bg-ink-800 text-ink-500"
+        className="mb-10 flex aspect-[4/5] items-center justify-center rounded-sm border border-dashed border-dark-700 bg-dark-800 text-dark-text-200"
       >
         {emptyLabel}
       </div>
@@ -105,7 +105,7 @@ export function HeroCarousel({ photos, alt, emptyLabel }: HeroCarouselProps) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="relative aspect-[4/5] touch-pan-y select-none overflow-hidden rounded-sm bg-ink-800"
+        className="relative aspect-[4/5] touch-pan-y select-none overflow-hidden rounded-sm bg-dark-800"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -121,7 +121,7 @@ export function HeroCarousel({ photos, alt, emptyLabel }: HeroCarouselProps) {
               onClick={prev}
               data-testid="carousel-prev"
               aria-label="Previous photo"
-              className="absolute inset-y-0 left-0 flex w-1/4 items-center justify-start px-3 text-ink-100 opacity-0 transition hover:bg-gradient-to-r hover:from-ink-900/60 hover:to-transparent hover:opacity-100 focus-visible:opacity-100"
+              className="absolute inset-y-0 left-0 flex w-1/4 items-center justify-start px-3 text-white opacity-0 transition hover:bg-gradient-to-r hover:from-dark-950/70 hover:to-transparent hover:opacity-100 focus-visible:opacity-100"
             >
               ←
             </button>
@@ -130,7 +130,7 @@ export function HeroCarousel({ photos, alt, emptyLabel }: HeroCarouselProps) {
               onClick={next}
               data-testid="carousel-next"
               aria-label="Next photo"
-              className="absolute inset-y-0 right-0 flex w-1/4 items-center justify-end px-3 text-ink-100 opacity-0 transition hover:bg-gradient-to-l hover:from-ink-900/60 hover:to-transparent hover:opacity-100 focus-visible:opacity-100"
+              className="absolute inset-y-0 right-0 flex w-1/4 items-center justify-end px-3 text-white opacity-0 transition hover:bg-gradient-to-l hover:from-dark-950/70 hover:to-transparent hover:opacity-100 focus-visible:opacity-100"
             >
               →
             </button>
@@ -155,7 +155,7 @@ export function HeroCarousel({ photos, alt, emptyLabel }: HeroCarouselProps) {
                 className={
                   "block h-12 w-12 overflow-hidden rounded-sm border-2 transition " +
                   (i === index
-                    ? "border-brass-400"
+                    ? "border-primary-500"
                     : "border-transparent opacity-60 hover:opacity-100")
                 }
               >
@@ -182,7 +182,7 @@ export function HeroCarousel({ photos, alt, emptyLabel }: HeroCarouselProps) {
               key={url}
               className={
                 "h-1.5 w-1.5 rounded-full transition " +
-                (i === index ? "bg-brass-400" : "bg-ink-600")
+                (i === index ? "bg-primary-500" : "bg-dark-700")
               }
             />
           ))}

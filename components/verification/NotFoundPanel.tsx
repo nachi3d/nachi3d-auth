@@ -7,15 +7,15 @@ export function NotFoundPanel({ title, body }: NotFoundPanelProps) {
   return (
     <main
       data-testid="verification-not-found"
-      className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-24"
+      className="brand-atmosphere mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-24"
     >
-      <p className="mb-3 text-xs uppercase tracking-[0.3em] text-ink-400">
+      <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary-400">
         Nachi3D Certify
       </p>
-      <h1 className="text-3xl font-serif font-light leading-tight text-ink-50 md:text-4xl">
+      <h1 className="text-3xl font-serif font-light leading-tight text-white md:text-4xl">
         {title}
       </h1>
-      <p className="mt-6 text-base leading-relaxed text-ink-300">{body}</p>
+      <p className="mt-6 text-base leading-relaxed text-dark-text-100">{body}</p>
     </main>
   );
 }

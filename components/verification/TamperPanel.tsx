@@ -28,10 +28,10 @@ export function TamperPanel({
           {title.toUpperCase()}
         </span>
       </div>
-      <h1 className="text-3xl font-serif font-light leading-tight text-ink-50 md:text-4xl">
+      <h1 className="text-3xl font-serif font-light leading-tight text-white md:text-4xl">
         {title}
       </h1>
-      <p className="mt-6 text-base leading-relaxed text-ink-300">{body}</p>
+      <p className="mt-6 text-base leading-relaxed text-dark-text-100">{body}</p>
       <a
         data-testid="tamper-support-cta"
         href={`mailto:${supportEmail}`}
