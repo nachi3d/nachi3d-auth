@@ -17,13 +17,40 @@ test.describe("Phase 3 — card PDFs", () => {
       const res = await request.get(`/api/admin/cards/${SEEDED_PIECE_ID}`);
       expect(res.status()).toBe(200);
       expect(res.headers()["content-type"]).toBe("application/pdf");
-      expect(res.headers()["content-disposition"]).toMatch(
+      const disposition = res.headers()["content-disposition"] ?? "";
+      // RFC 6266: must be an attachment with a quoted ASCII filename ending
+      // in .pdf, and an RFC 5987 filename* echoing the same name in UTF-8.
+      // Both are required so neither legacy clients (filename) nor strict
+      // ones (filename*) ever fall back to the URL — which is a bare UUID.
+      expect(disposition).toMatch(
         /attachment; filename="nachi3d-certify-piece-\d{4}\.pdf"/,
       );
+      expect(disposition).toContain("filename=");
+      expect(disposition).toContain(".pdf");
+      expect(disposition).toMatch(/filename\*=UTF-8''[^;]*\.pdf/);
       const body = await res.body();
-      // PDF magic bytes: %PDF-
+      // PDF magic bytes: %PDF
+      expect(body.subarray(0, 4).toString("ascii")).toBe("%PDF");
       expect(body.subarray(0, 5).toString("ascii")).toBe("%PDF-");
       expect(body.byteLength).toBeGreaterThan(1024);
+    });
+
+    test("download link on the edit page suggests a .pdf filename", async ({
+      page,
+    }) => {
+      // The server response is correct in isolation, but if the <a> tag
+      // lacks a download attribute the browser falls back to the URL
+      // (a bare UUID) when the user does "save link as" or right-clicks.
+      // Lock the link's download attribute in place so this regresses
+      // loudly next time someone touches the edit page.
+      await page.goto(`/en/admin/pieces/${SEEDED_PIECE_ID}/edit`);
+      const link = page.getByTestId("card-pdf-link");
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("href", `/api/admin/cards/${SEEDED_PIECE_ID}`);
+      await expect(link).toHaveAttribute(
+        "download",
+        /^nachi3d-certify-piece-\d{4}\.pdf$/,
+      );
     });
 
     test("second request hits the cache (X-Cache: HIT)", async ({

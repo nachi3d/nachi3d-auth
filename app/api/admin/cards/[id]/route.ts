@@ -93,9 +93,16 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
 }
 
 function pdfHeaders(filename: string, cache: "HIT" | "MISS"): HeadersInit {
+  // RFC 6266 + RFC 5987: ASCII filename for legacy clients, plus filename*
+  // so any UA that prefers it gets a UTF-8-safe value. Both reduce to the
+  // same bytes here (filename is always ASCII), but the dual form is what
+  // browsers expect for downloads they must not rename.
+  const disposition =
+    `attachment; filename="${filename}"; ` +
+    `filename*=UTF-8''${encodeURIComponent(filename)}`;
   return {
     "Content-Type": "application/pdf",
-    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Content-Disposition": disposition,
     "X-Cache": cache,
     "Cache-Control": "private, max-age=0, must-revalidate",
   };

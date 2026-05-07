@@ -55,6 +55,8 @@ export default async function EditPiecePage({
   const sp = await searchParams;
   const justCreated = sp.created === "1";
 
+  const cardFilename = `nachi3d-certify-piece-${String(piece.piece_number).padStart(4, "0")}.pdf`;
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <header className="mb-10">
@@ -94,6 +96,7 @@ export default async function EditPiecePage({
         </code>
         <a
           href={`/api/admin/cards/${piece.id}`}
+          download={cardFilename}
           data-testid="card-pdf-link"
           className="mt-4 inline-block rounded-sm border border-dark-700 px-4 py-2 text-sm text-dark-text-100 transition hover:border-primary-500 hover:text-primary-400"
         >
