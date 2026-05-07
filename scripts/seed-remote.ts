@@ -94,6 +94,23 @@ export async function seedRemote(): Promise<void> {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+  // Drop any non-seed pieces left behind by previous e2e runs. The
+  // Playwright suite (admin-pieces.spec.ts → register-then-verify) creates
+  // pieces with high piece_numbers and random NFC UIDs that pile up across
+  // runs and eventually collide on the unique constraints. Anything other
+  // than the canonical SEED_PIECE_ID is fair game on the test database.
+  // verification_logs and provenance_events for those pieces cascade-delete
+  // via the FK on_delete=cascade in the schema.
+  const { error: pruneErr } = await sb
+    .from("pieces")
+    .delete()
+    .neq("id", SEED_PIECE_ID);
+  if (pruneErr) {
+    throw new Error(
+      `seed-remote: failed to prune non-seed pieces: ${pruneErr.message}`,
+    );
+  }
+
   for (const user of SEED_USERS) {
     const { data: existing } = await sb.auth.admin.getUserById(user.id);
     if (existing?.user) {
