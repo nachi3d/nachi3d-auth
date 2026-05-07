@@ -64,6 +64,91 @@ test.describe("Phase 2 — admin pieces", () => {
       await anon.close();
     });
 
+    test("photo uploader: real drop event uploads the dropped image", async ({
+      page,
+      request,
+    }) => {
+      // Why a real drop event (not the input[type=file] shortcut):
+      // we're guarding against a regression where the drop zone forgot to
+      // call e.preventDefault() in onDragOver/onDrop, which makes the
+      // browser open the dropped file in a new tab instead of uploading.
+      // The input fallback would still pass; only a synthesized drop
+      // exercises the broken path.
+      const uid = uniqueUid("DD");
+      const pieceNumber = 9200 + Math.floor(Math.random() * 700);
+      const create = await request.post("/api/admin/pieces", {
+        data: {
+          nfc_uid: uid,
+          piece_number: pieceNumber,
+          edition_number: null,
+          edition_total: null,
+          character_name: "Drop Target",
+          character_quote: null,
+          license_status: "original",
+          license_notes: null,
+          sculpt_date: "2026-04-01",
+          paint_date: "2026-04-15",
+          photos: [],
+          status: "draft",
+        },
+      });
+      expect(create.status()).toBe(201);
+      const { piece } = (await create.json()) as {
+        piece: { id: string };
+      };
+
+      await page.goto(`/en/admin/pieces/${piece.id}/edit`);
+      const dropZone = page.getByTestId("photo-uploader");
+      await expect(dropZone).toBeVisible();
+      await expect(
+        page.locator("[data-testid='photo-uploader'] li img"),
+      ).toHaveCount(0);
+
+      // 1×1 transparent PNG. Building a real File in the page context and
+      // wiring it through a DataTransfer is the only way to get a Files-typed
+      // drag event into React without going through the file input.
+      const TINY_PNG_BASE64 =
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+      await page.evaluate((base64) => {
+        const target = document.querySelector(
+          "[data-testid='photo-uploader']",
+        );
+        if (!target) throw new Error("photo-uploader not found");
+
+        const bin = atob(base64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const file = new File([bytes], "dropped.png", { type: "image/png" });
+
+        const dt = new DataTransfer();
+        dt.items.add(file);
+
+        const fire = (type: string) => {
+          const ev = new DragEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            dataTransfer: dt,
+          });
+          target.dispatchEvent(ev);
+        };
+        fire("dragenter");
+        fire("dragover");
+        fire("drop");
+      }, TINY_PNG_BASE64);
+
+      // After the drop fires, the upload posts to /api/admin/photos and the
+      // grid grows by one <img>. If preventDefault was missing on dragover/
+      // drop the browser would have navigated to the file URL instead and
+      // we'd never see this img.
+      await expect(
+        page.locator("[data-testid='photo-uploader'] li img"),
+      ).toHaveCount(1, { timeout: 15_000 });
+      await expect(
+        page.getByTestId("photo-uploader-error"),
+      ).toBeHidden();
+    });
+
     test("locked uid: UI is disabled on a published piece", async ({ page }) => {
       await page.goto(`/en/admin/pieces/${SEEDED_PIECE_ID}/edit`);
       const uidInput = page.getByTestId("field-nfc_uid");
