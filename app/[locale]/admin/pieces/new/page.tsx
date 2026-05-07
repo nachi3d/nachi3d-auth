@@ -41,13 +41,13 @@ export default async function NewPiecePage({ params }: PageProps) {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <header className="mb-10">
-        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-brass-400">
+        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-primary-400">
           Nachi3D Certify
         </p>
-        <h1 className="text-3xl font-serif font-light text-ink-50 md:text-4xl">
+        <h1 className="text-3xl font-serif font-light text-white md:text-4xl">
           {t("newTitle")}
         </h1>
-        <p className="mt-2 text-sm text-ink-400">{t("newSubtitle")}</p>
+        <p className="mt-2 text-sm text-dark-text-200">{t("newSubtitle")}</p>
       </header>
 
       <PieceForm

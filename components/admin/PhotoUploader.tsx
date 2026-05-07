@@ -135,10 +135,10 @@ export function PhotoUploader({
   return (
     <div data-testid="photo-uploader" className="space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-[0.2em] text-ink-400">
+        <span className="text-xs uppercase tracking-[0.2em] text-dark-text-200">
           {labels.dragHint}
         </span>
-        <label className="cursor-pointer rounded-sm border border-ink-600 px-4 py-2 text-sm text-ink-100 hover:border-brass-400 hover:text-brass-400">
+        <label className="cursor-pointer rounded-sm border border-dark-700 px-4 py-2 text-sm text-dark-text-100 transition hover:border-primary-500 hover:text-primary-400">
           {labels.addPhotos}
           <input
             ref={fileInputRef}
@@ -162,7 +162,7 @@ export function PhotoUploader({
       ) : null}
 
       {photos.length === 0 && pending.length === 0 ? (
-        <p className="rounded-sm border border-dashed border-ink-700 px-4 py-8 text-center text-sm text-ink-500">
+        <p className="rounded-sm border border-dashed border-dark-700 px-4 py-8 text-center text-sm text-dark-text-200">
           {labels.empty}
         </p>
       ) : (
@@ -174,7 +174,7 @@ export function PhotoUploader({
               onDragStart={onDragStart(i)}
               onDragOver={onDragOver}
               onDrop={onDrop(i)}
-              className="group relative aspect-square overflow-hidden rounded-sm border border-ink-700 bg-ink-800"
+              className="group relative aspect-square overflow-hidden rounded-sm border border-dark-700 bg-dark-800"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -183,14 +183,14 @@ export function PhotoUploader({
                 className="h-full w-full object-cover"
               />
               {i === 0 ? (
-                <span className="absolute left-2 top-2 rounded-sm bg-brass-400/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-ink-900">
+                <span className="absolute left-2 top-2 rounded-sm bg-primary-500/90 px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-white">
                   {labels.hero}
                 </span>
               ) : null}
               <button
                 type="button"
                 onClick={() => remove(url)}
-                className="absolute right-2 top-2 rounded-sm bg-ink-900/80 px-2 py-1 text-xs text-ink-100 opacity-0 transition group-hover:opacity-100 hover:bg-red-500/80"
+                className="absolute right-2 top-2 rounded-sm bg-dark-950/80 px-2 py-1 text-xs text-dark-text-100 opacity-0 transition group-hover:opacity-100 hover:bg-accent-500/80 hover:text-white"
                 aria-label={labels.delete}
                 data-testid="photo-delete"
               >
@@ -201,7 +201,7 @@ export function PhotoUploader({
           {pending.map((p) => (
             <li
               key={p.id}
-              className="flex aspect-square items-center justify-center rounded-sm border border-dashed border-ink-700 text-xs text-ink-500"
+              className="flex aspect-square items-center justify-center rounded-sm border border-dashed border-dark-700 text-xs text-dark-text-200"
             >
               {labels.uploading}
               <br />

@@ -59,20 +59,20 @@ export default async function AdminPiecesListPage({
     <main className="mx-auto max-w-5xl px-6 py-12" data-testid="admin-pieces-list">
       <header className="mb-10 flex flex-wrap items-baseline justify-between gap-4">
         <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.3em] text-brass-400">
+          <p className="mb-2 text-xs uppercase tracking-[0.3em] text-primary-400">
             Nachi3D Certify
           </p>
-          <h1 className="text-3xl font-serif font-light text-ink-50 md:text-4xl">
+          <h1 className="text-3xl font-serif font-light text-white md:text-4xl">
             {t("listTitle")}
           </h1>
-          <p className="mt-2 text-sm text-ink-400">
+          <p className="mt-2 text-sm text-dark-text-200">
             {t("listSubtitle", { total })}
           </p>
         </div>
         <Link
           href={`/${locale}/admin/pieces/new`}
           data-testid="new-piece-link"
-          className="rounded-sm bg-brass-400 px-5 py-2.5 text-sm font-medium text-ink-900 hover:bg-brass-300"
+          className="rounded-sm bg-primary-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-600"
         >
           {t("newPiece")}
         </Link>
@@ -85,8 +85,8 @@ export default async function AdminPiecesListPage({
             href={filterHref(s)}
             className={
               status === s
-                ? "rounded-sm bg-ink-700 px-3 py-1.5 text-xs uppercase tracking-wider text-ink-100"
-                : "rounded-sm border border-ink-700 px-3 py-1.5 text-xs uppercase tracking-wider text-ink-400 hover:border-brass-400 hover:text-brass-400"
+                ? "rounded-sm bg-primary-500/20 px-3 py-1.5 text-xs uppercase tracking-wider text-primary-400 ring-1 ring-primary-500/40"
+                : "rounded-sm border border-dark-700 px-3 py-1.5 text-xs uppercase tracking-wider text-dark-text-200 transition hover:border-primary-500 hover:text-primary-400"
             }
           >
             {t(`status.${s}`)}
@@ -97,12 +97,12 @@ export default async function AdminPiecesListPage({
       {rows.length === 0 ? (
         <div
           data-testid="pieces-empty"
-          className="rounded-sm border border-dashed border-ink-700 bg-ink-800/40 px-6 py-16 text-center"
+          className="rounded-sm border border-dashed border-dark-700 bg-dark-900/40 px-6 py-16 text-center"
         >
-          <p className="text-ink-300">{t("empty")}</p>
+          <p className="text-dark-text-100">{t("empty")}</p>
         </div>
       ) : (
-        <ul className="divide-y divide-ink-700 border-y border-ink-700">
+        <ul className="divide-y divide-dark-700 border-y border-dark-700">
           {rows.map((row) => (
             <li
               key={row.id}
@@ -111,14 +111,14 @@ export default async function AdminPiecesListPage({
             >
               <Link
                 href={`/${locale}/admin/pieces/${row.id}/edit`}
-                className="flex flex-1 items-center gap-6 text-ink-100 hover:text-brass-400"
+                className="flex flex-1 items-center gap-6 text-dark-text-100 transition hover:text-primary-400"
               >
-                <span className="font-serif text-2xl text-ink-50">
+                <span className="font-serif text-2xl text-white">
                   #{String(row.piece_number).padStart(4, "0")}
                 </span>
                 <span className="flex-1">
                   <span className="block">{row.character_name}</span>
-                  <span className="block font-mono text-xs text-ink-500">
+                  <span className="block font-mono text-xs text-dark-text-200">
                     {row.nfc_uid}
                   </span>
                 </span>
@@ -127,10 +127,10 @@ export default async function AdminPiecesListPage({
                 className={
                   "ml-3 rounded-sm px-2 py-0.5 text-xs uppercase tracking-wider " +
                   (row.status === "published"
-                    ? "bg-brass-400/20 text-brass-300"
+                    ? "bg-primary-500/20 text-primary-400"
                     : row.status === "archived"
-                      ? "bg-ink-700 text-ink-400"
-                      : "bg-ink-700 text-ink-300")
+                      ? "bg-dark-800 text-dark-text-200"
+                      : "bg-dark-800 text-dark-text-100")
                 }
               >
                 {t(`status.${row.status}`)}
@@ -141,11 +141,11 @@ export default async function AdminPiecesListPage({
       )}
 
       {totalPages > 1 ? (
-        <nav className="mt-8 flex items-center justify-between text-sm text-ink-400">
+        <nav className="mt-8 flex items-center justify-between text-sm text-dark-text-200">
           {page > 1 ? (
             <Link
               href={`/${locale}/admin/pieces?status=${status}&page=${page - 1}`}
-              className="hover:text-brass-400"
+              className="transition hover:text-primary-400"
             >
               ← {t("prev")}
             </Link>
@@ -158,7 +158,7 @@ export default async function AdminPiecesListPage({
           {page < totalPages ? (
             <Link
               href={`/${locale}/admin/pieces?status=${status}&page=${page + 1}`}
-              className="hover:text-brass-400"
+              className="transition hover:text-primary-400"
             >
               {t("next")} →
             </Link>

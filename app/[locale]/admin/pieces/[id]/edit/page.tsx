@@ -58,21 +58,21 @@ export default async function EditPiecePage({
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <header className="mb-10">
-        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-brass-400">
+        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-primary-400">
           Nachi3D Certify
         </p>
-        <h1 className="text-3xl font-serif font-light text-ink-50 md:text-4xl">
+        <h1 className="text-3xl font-serif font-light text-white md:text-4xl">
           {t("editTitle", {
             number: String(piece.piece_number).padStart(4, "0"),
           })}
         </h1>
-        <p className="mt-2 text-sm text-ink-400">{piece.character_name}</p>
+        <p className="mt-2 text-sm text-dark-text-200">{piece.character_name}</p>
       </header>
 
       {justCreated ? (
         <p
           data-testid="piece-created-banner"
-          className="mb-8 rounded-sm border border-brass-400/40 bg-brass-400/10 px-4 py-3 text-sm text-brass-300"
+          className="mb-8 rounded-sm border border-primary-500/40 bg-primary-500/10 px-4 py-3 text-sm text-primary-400"
         >
           {t("createdBanner")}
         </p>
@@ -80,22 +80,22 @@ export default async function EditPiecePage({
 
       <section
         data-testid="nfc-callout"
-        className="mb-10 rounded-sm border border-brass-400/40 bg-ink-800/60 p-6"
+        className="mb-10 rounded-sm border border-primary-500/30 bg-dark-800/60 p-6"
       >
-        <h2 className="text-xs uppercase tracking-[0.25em] text-brass-400">
+        <h2 className="text-xs uppercase tracking-[0.25em] text-primary-400">
           {tNfc("title")}
         </h2>
-        <p className="mt-2 text-sm text-ink-300">{tNfc("body")}</p>
+        <p className="mt-2 text-sm text-dark-text-100">{tNfc("body")}</p>
         <code
           data-testid="verification-url"
-          className="mt-4 block break-all rounded-sm bg-ink-900 px-3 py-2 font-mono text-xs text-ink-100"
+          className="mt-4 block break-all rounded-sm bg-dark-950 px-3 py-2 font-mono text-xs text-dark-text-100"
         >
           {verificationUrl}
         </code>
         <a
           href={`/api/admin/cards/${piece.id}`}
           data-testid="card-pdf-link"
-          className="mt-4 inline-block rounded-sm border border-ink-600 px-4 py-2 text-sm text-ink-100 transition hover:border-brass-400 hover:text-brass-400"
+          className="mt-4 inline-block rounded-sm border border-dark-700 px-4 py-2 text-sm text-dark-text-100 transition hover:border-primary-500 hover:text-primary-400"
         >
           {tNfc("downloadCard")}
         </a>
