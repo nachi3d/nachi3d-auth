@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset --linked",
+    "db:seed": "tsx scripts/seed-remote.ts",
     "sign": "tsx scripts/sign-token.ts",
     "fetch:fonts": "tsx scripts/fetch-fonts.ts"
   },
