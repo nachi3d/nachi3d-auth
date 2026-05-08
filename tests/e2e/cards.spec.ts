@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 import { ADMIN_STATE_PATH, COLLECTOR_STATE_PATH } from "./fixtures/auth";
 
 const SEEDED_PIECE_ID = "00000000-0000-0000-0000-000000000001";
@@ -51,6 +52,31 @@ test.describe("Phase 3 — card PDFs", () => {
         "download",
         /^nachi3d-certify-piece-\d{4}\.pdf$/,
       );
+    });
+
+    test("clicking the link triggers a real PDF download", async ({ page }) => {
+      // The attribute test above only proves the markup is right. It does not
+      // prove the click actually results in a download — a parent click
+      // handler, Server Actions form interception, or a service worker could
+      // all swallow the navigation and leave the user staring at nothing.
+      // Drive a real click and wait for the browser's download event.
+      await page.goto(`/en/admin/pieces/${SEEDED_PIECE_ID}/edit`);
+      const link = page.getByTestId("card-pdf-link");
+      await expect(link).toBeVisible();
+
+      const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
+      await link.click();
+      const download = await downloadPromise;
+
+      const suggested = download.suggestedFilename();
+      expect(suggested).toMatch(/^nachi3d-certify-piece-\d{4}\.pdf$/);
+      expect(suggested.endsWith(".pdf")).toBe(true);
+
+      const savedPath = await download.path();
+      expect(savedPath).not.toBeNull();
+      const bytes = await readFile(savedPath!);
+      expect(bytes.subarray(0, 4).toString("ascii")).toBe("%PDF");
+      expect(bytes.byteLength).toBeGreaterThan(1024);
     });
 
     test("second request hits the cache (X-Cache: HIT)", async ({
