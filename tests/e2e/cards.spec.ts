@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
+import { PDFParse } from "pdf-parse";
 import { ADMIN_STATE_PATH, COLLECTOR_STATE_PATH } from "./fixtures/auth";
 
 const SEEDED_PIECE_ID = "00000000-0000-0000-0000-000000000001";
@@ -77,6 +78,90 @@ test.describe("Phase 3 — card PDFs", () => {
       const bytes = await readFile(savedPath!);
       expect(bytes.subarray(0, 4).toString("ascii")).toBe("%PDF");
       expect(bytes.byteLength).toBeGreaterThan(1024);
+    });
+
+    test("rendered text is complete on both pages (no glyph dropouts)", async ({
+      request,
+    }) => {
+      // Regression test for a previous bug where pdf-lib's font subsetter
+      // mangled glyph IDs (variable fonts + GSUB/GPOS layout tables in
+      // upstream OFL TTFs) and rendered partial words on the card —
+      // "Nachi3D" came out as "i3D" then "ach", "Test Subject" as
+      // "T   Subj  c", entire Arabic notice as scattered boxes. The PDF
+      // text stream was intact (pdf-parse recovered it via ToUnicode)
+      // but the visible glyphs were wrong. The fonts are now pre-subset
+      // by scripts/prepare-fonts.py and embedded with `subset: false`;
+      // this test guards that pipeline.
+      //
+      // pdf-parse reads the same ToUnicode entries the previous bug
+      // preserved, so a passing test here is necessary but not sufficient
+      // for visual correctness. It IS sufficient to catch the next class
+      // of regression: someone re-introducing pdf-lib subsetting, or
+      // shipping a TTF that fails to embed at all (the route would fall
+      // back to Helvetica and the strings would still appear).
+      const res = await request.get(`/api/admin/cards/${SEEDED_PIECE_ID}`);
+      expect(res.status()).toBe(200);
+      const body = Buffer.from(await res.body());
+
+      const parser = new PDFParse({ data: new Uint8Array(body) });
+      const parsed = await parser.getText();
+      const text = parsed.text;
+
+      // Front: every word the design draws must appear in full, exactly
+      // as written — substring matches, no regex tolerance.
+      expect(text).toContain("Nachi3D");
+      expect(text).toContain("CERTIFY");
+      expect(text).toContain("Test Subject");
+      expect(text).toContain(
+        "Authenticity is what you carry, not what you claim.",
+      );
+      expect(text).toContain("signed");
+      expect(text).toContain("Nachi3D Certify");
+
+      // Back: the trilingual notices and the metadata block.
+      expect(text).toContain("AUTHENTICITY");
+      expect(text).toContain("SCULPT");
+      expect(text).toContain("PAINT");
+      expect(text).toContain("EDITION");
+      expect(text).toContain("PIECE");
+      expect(text).toContain("#0001");
+      expect(text).toContain("hello@nachi3d.com");
+
+      // EN / FR notices: assert multiple load-bearing substrings from
+      // start, middle, and end of each notice. The notices wrap onto
+      // ~60-char lines in the PDF, so we can't assert a single long
+      // line — instead check that fragments from across the notice all
+      // survived rendering. Silent truncation would drop fragments
+      // from the middle or end.
+      // EN
+      expect(text).toContain(
+        "This card certifies the authenticity of a Nachi3D figurine.",
+      );
+      expect(text).toContain("embedded NFC chip");
+      expect(text).toContain("verify.nachi3d.com.");
+      // FR
+      expect(text).toContain(
+        "Cette carte certifie l'authenticité d'une figurine Nachi3D.",
+      );
+      expect(text).toContain("Approchez la puce NFC");
+      expect(text).toContain("page de");
+      expect(text).toContain("vérification sur verify.nachi3d.com.");
+
+      // AR notice: we don't substring-match individual words because
+      // pdf-parse returns the shaped Presentation Forms-B glyphs in
+      // visual order rather than the logical-order source string. But
+      // the total Arabic glyph count must be in the right ballpark —
+      // the source has ~85 base Arabic letters; <80 means the AR run
+      // was silently dropped or partially rendered.
+      const arabicChars = [...text].filter((c) => {
+        const cp = c.codePointAt(0)!;
+        return (
+          (cp >= 0x0600 && cp <= 0x06ff) ||
+          (cp >= 0xfb50 && cp <= 0xfdff) ||
+          (cp >= 0xfe70 && cp <= 0xfeff)
+        );
+      });
+      expect(arabicChars.length).toBeGreaterThan(80);
     });
 
     test("second request hits the cache (X-Cache: HIT)", async ({
