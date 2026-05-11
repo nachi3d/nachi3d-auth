@@ -1,0 +1,125 @@
+{
+  "site": {
+    "name": "Nachi3D Certify",
+    "tagline": "Authenticated collectible art from Nachi3D"
+  },
+  "landing": {
+    "title": "Nachi3D Certify",
+    "subtitle": "Every Nachi3D figurine carries an embedded NFC chip and a printed certificate. Tap or scan to verify a piece.",
+    "howItWorks": "How it works",
+    "step1": "Tap your phone to the chip embedded in the figurine's base, or scan the QR on the certificate card.",
+    "step2": "You'll land on this site, on a page unique to that piece.",
+    "step3": "If the page shows the piece's number, photos, and provenance, it's authentic.",
+    "learnMore": "Learn more at nachi3d.com"
+  },
+  "verify": {
+    "pieceNumber": "Piece",
+    "edition": "Edition {n} of {total}",
+    "editionShort": "{n}/{total}",
+    "character": "Character",
+    "sculptDate": "Sculpted",
+    "paintDate": "Painted",
+    "authenticated": "Authenticated by Nachi3D Certify",
+    "emptyHero": "Photo coming soon",
+    "tamperTitle": "This URL has been altered",
+    "tamperBody": "This URL did not pass our authenticity check. The chip may have been cloned or the link tampered with. If you believe this is a genuine Nachi3D piece, contact us at hello@nachi3d.com.",
+    "supportEmailCta": "Email hello@nachi3d.com",
+    "notFoundTitle": "Piece not found",
+    "notFoundBody": "We couldn't find a Nachi3D piece for this code. Make sure you scanned a Nachi3D figurine and try again.",
+    "timeline": {
+      "title": "Provenance",
+      "empty": "No provenance events yet.",
+      "types": {
+        "created": "Created",
+        "claimed": "Claimed",
+        "transferred": "Transferred",
+        "note": "Note"
+      }
+    },
+    "claim": {
+      "title": "Own this piece?",
+      "body": "Claim it to your Nachi3D account so future taps show you as the owner, and so you can transfer it cleanly if you ever resell.",
+      "buttonLabel": "Claim this piece"
+    }
+  },
+  "claim": {
+    "comingSoon": {
+      "title": "Claim flow — coming soon",
+      "body": "Owner claims will be available in the next release. We'll send a magic link to your email to verify ownership without a password.",
+      "back": "Back to home"
+    }
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "comingSoon": "Coming soon — Phase 2 will introduce piece registration.",
+    "signedInAs": "Signed in as {email}",
+    "notAuthorized": "You don't have access to the admin panel.",
+    "managePieces": "Manage pieces",
+    "pieces": {
+      "listTitle": "Pieces",
+      "listSubtitle": "{total} total",
+      "newPiece": "New piece",
+      "newTitle": "Register a new piece",
+      "newSubtitle": "Save as draft to upload photos, or publish straight away.",
+      "editTitle": "Edit piece #{number}",
+      "createdBanner": "Piece created. Upload photos and publish when ready.",
+      "empty": "No pieces yet. Click ‘New piece’ to register the first one.",
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}",
+      "status": {
+        "all": "All",
+        "draft": "Draft",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "form": {
+        "nfc_uid": "NFC UID",
+        "piece_number": "Piece number",
+        "edition_number": "Edition #",
+        "edition_total": "Edition of",
+        "character_name": "Character name",
+        "character_quote": "Character quote",
+        "license_status": "License",
+        "license_notes": "License notes",
+        "sculpt_date": "Sculpt date",
+        "paint_date": "Paint date",
+        "photos": "Photos",
+        "saveDraft": "Save as draft",
+        "publish": "Publish",
+        "saved": "Saved.",
+        "uidLockedHint": "NFC UID is locked once a piece is published."
+      },
+      "license": {
+        "original": "Original work",
+        "public_domain": "Public domain",
+        "commission": "Commission",
+        "licensed": "Licensed",
+        "other": "Other"
+      },
+      "photos": {
+        "addPhotos": "Add photos",
+        "hero": "Hero",
+        "delete": "Delete",
+        "uploading": "Uploading",
+        "dragHint": "Drag to reorder. The first photo is the hero.",
+        "empty": "No photos yet. Drag images here or click ‘Add photos’.",
+        "addAfterCreate": "Save the piece first, then upload photos on the edit page."
+      },
+      "nfc": {
+        "title": "Write to NFC chip",
+        "body": "Program this URL onto the figurine's NTAG215 chip and print the matching QR onto the certificate card.",
+        "downloadCard": "Generate card PDF"
+      },
+      "errors": {
+        "title": "Couldn't save",
+        "fallback": "Please review the highlighted fields."
+      }
+    }
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "loginRequired": "Please sign in to continue."
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "site": {
+    "name": "Nachi3D Certify",
+    "tagline": "L'art de collection authentifié par Nachi3D"
+  },
+  "landing": {
+    "title": "Nachi3D Certify",
+    "subtitle": "Chaque figurine Nachi3D contient une puce NFC et un certificat imprimé. Touchez ou scannez pour vérifier une pièce.",
+    "howItWorks": "Comment ça marche",
+    "step1": "Approchez votre téléphone de la puce intégrée à la base de la figurine, ou scannez le QR du certificat.",
+    "step2": "Vous arriverez sur ce site, sur une page propre à cette pièce.",
+    "step3": "Si la page affiche le numéro, les photos et la provenance, la pièce est authentique.",
+    "learnMore": "En savoir plus sur nachi3d.com"
+  },
+  "verify": {
+    "pieceNumber": "Pièce",
+    "edition": "Édition {n} sur {total}",
+    "editionShort": "{n}/{total}",
+    "character": "Personnage",
+    "sculptDate": "Sculptée",
+    "paintDate": "Peinte",
+    "authenticated": "Authentifiée par Nachi3D Certify",
+    "emptyHero": "Photo à venir",
+    "tamperTitle": "Cette URL a été modifiée",
+    "tamperBody": "Cette URL n'a pas passé notre contrôle d'authenticité. La puce a peut-être été clonée ou le lien altéré. Si vous pensez qu'il s'agit d'une véritable pièce Nachi3D, contactez-nous à hello@nachi3d.com.",
+    "supportEmailCta": "Écrire à hello@nachi3d.com",
+    "notFoundTitle": "Pièce introuvable",
+    "notFoundBody": "Aucune pièce Nachi3D ne correspond à ce code. Vérifiez que vous avez bien scanné une figurine Nachi3D et réessayez.",
+    "timeline": {
+      "title": "Provenance",
+      "empty": "Aucun événement de provenance pour le moment.",
+      "types": {
+        "created": "Créée",
+        "claimed": "Revendiquée",
+        "transferred": "Transférée",
+        "note": "Note"
+      }
+    },
+    "claim": {
+      "title": "Vous possédez cette pièce ?",
+      "body": "Revendiquez-la sur votre compte Nachi3D pour apparaître comme propriétaire lors des futurs scans et la transférer proprement en cas de revente.",
+      "buttonLabel": "Revendiquer cette pièce"
+    }
+  },
+  "claim": {
+    "comingSoon": {
+      "title": "Revendication — bientôt disponible",
+      "body": "La revendication par les propriétaires sera disponible dans la prochaine version. Nous vous enverrons un lien magique par e-mail pour confirmer la possession sans mot de passe.",
+      "back": "Retour à l'accueil"
+    }
+  },
+  "admin": {
+    "title": "Panneau d'administration",
+    "comingSoon": "Bientôt — la phase 2 introduira l'enregistrement des pièces.",
+    "signedInAs": "Connecté en tant que {email}",
+    "notAuthorized": "Vous n'avez pas accès au panneau d'administration.",
+    "managePieces": "Gérer les pièces",
+    "pieces": {
+      "listTitle": "Pièces",
+      "listSubtitle": "{total} au total",
+      "newPiece": "Nouvelle pièce",
+      "newTitle": "Enregistrer une nouvelle pièce",
+      "newSubtitle": "Enregistrez en brouillon pour ajouter des photos, ou publiez directement.",
+      "editTitle": "Modifier la pièce #{number}",
+      "createdBanner": "Pièce créée. Ajoutez des photos puis publiez lorsque vous serez prêt.",
+      "empty": "Aucune pièce pour le moment. Cliquez sur « Nouvelle pièce » pour enregistrer la première.",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "pageOf": "Page {page} sur {total}",
+      "status": {
+        "all": "Toutes",
+        "draft": "Brouillon",
+        "published": "Publiée",
+        "archived": "Archivée"
+      },
+      "form": {
+        "nfc_uid": "UID NFC",
+        "piece_number": "Numéro de pièce",
+        "edition_number": "Édition n°",
+        "edition_total": "Sur (édition de)",
+        "character_name": "Nom du personnage",
+        "character_quote": "Citation du personnage",
+        "license_status": "Licence",
+        "license_notes": "Notes de licence",
+        "sculpt_date": "Date de sculpture",
+        "paint_date": "Date de peinture",
+        "photos": "Photos",
+        "saveDraft": "Enregistrer en brouillon",
+        "publish": "Publier",
+        "saved": "Enregistré.",
+        "uidLockedHint": "L'UID NFC est verrouillé dès qu'une pièce est publiée."
+      },
+      "license": {
+        "original": "Œuvre originale",
+        "public_domain": "Domaine public",
+        "commission": "Commande",
+        "licensed": "Sous licence",
+        "other": "Autre"
+      },
+      "photos": {
+        "addPhotos": "Ajouter des photos",
+        "hero": "Vedette",
+        "delete": "Supprimer",
+        "uploading": "Téléversement",
+        "dragHint": "Glissez pour réordonner. La première photo est la vedette.",
+        "empty": "Aucune photo. Glissez des images ici ou cliquez sur « Ajouter des photos ».",
+        "addAfterCreate": "Enregistrez d'abord la pièce, puis ajoutez les photos depuis la page d'édition."
+      },
+      "nfc": {
+        "title": "Programmer la puce NFC",
+        "body": "Programmez cette URL sur la puce NTAG215 de la figurine et imprimez le QR correspondant sur le certificat.",
+        "downloadCard": "Générer le PDF du certificat"
+      },
+      "errors": {
+        "title": "Impossible d'enregistrer",
+        "fallback": "Vérifiez les champs en surbrillance."
+      }
+    }
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "loginRequired": "Veuillez vous connecter pour continuer."
+  }
+}

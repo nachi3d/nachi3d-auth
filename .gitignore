@@ -1,0 +1,69 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+tests/.auth/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# production
+build/
+dist/
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (never commit)
+.env
+.env*.local
+.env.development
+.env.production
+.env.test
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# editor
+.vscode/
+.idea/
+*.swp
+
+# Supabase — Studio snippets are local scratch (often contain secrets)
+supabase/.branches
+supabase/.temp
+supabase/snippets/
+
+# OS
+.DS_Store
+
+# Note: public/fonts/*.ttf are committed (SIL OFL 1.1, embedding
+# permitted). Use `npm run fetch:fonts` only when bumping versions.
+
+# Local smoke-script output (e.g. scripts/smoke-card-pdf.ts → sample-card.pdf)
+scripts/.tmp/
