@@ -330,8 +330,8 @@ async function recordVerification(pieceId: string): Promise<void> {
     const supabase = createAdminClient();
     await supabase.from("verification_logs").insert({
       piece_id: pieceId,
-      ip_country: h.get("cf-ipcountry"),
-      ip_region: h.get("cf-region") ?? h.get("cf-ipcity"),
+      ip_country: h.get("x-vercel-ip-country"),
+      ip_region: h.get("x-vercel-ip-country-region") ?? h.get("x-vercel-ip-city"),
       user_agent: h.get("user-agent"),
       is_owner: false,
     });

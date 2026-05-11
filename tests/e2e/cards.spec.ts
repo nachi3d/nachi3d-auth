@@ -138,14 +138,14 @@ test.describe("Phase 3 — card PDFs", () => {
         "This card certifies the authenticity of a Nachi3D figurine.",
       );
       expect(text).toContain("embedded NFC chip");
-      expect(text).toContain("verify.nachi3d.com.");
+      expect(text).toContain("verify.nachi3dlabs.com.");
       // FR
       expect(text).toContain(
         "Cette carte certifie l'authenticité d'une figurine Nachi3D.",
       );
       expect(text).toContain("Approchez la puce NFC");
       expect(text).toContain("page de");
-      expect(text).toContain("vérification sur verify.nachi3d.com.");
+      expect(text).toContain("vérification sur verify.nachi3dlabs.com.");
 
       // AR notice: we don't substring-match individual words because
       // pdf-parse returns the shaped Presentation Forms-B glyphs in

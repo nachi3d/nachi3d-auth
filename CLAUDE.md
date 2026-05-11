@@ -88,22 +88,25 @@ Before ANY merge to `main`:
 1. All changes must work in `npm run dev` first
 2. Build a production bundle: `npm run build`
 3. Smoke-test locally: `npm run start`
-4. Verify against a Cloudflare Pages preview deployment from the `dev` branch
+4. Verify against a Vercel preview deployment from the `dev` branch
 5. Only THEN bump version and merge `dev` → `main`
 
-**Why:** Cloudflare Pages preview builds run on the same Workers runtime
-as production. Local dev uses Node which can mask edge-runtime
-incompatibilities (e.g. Node-only APIs in middleware, missing polyfills).
-Test on the preview deploy before promoting to main.
+**Why:** Vercel preview builds run on the same runtime split as
+production — Node.js serverless functions for routes, Vercel Edge
+Runtime (V8 isolates, not Node) for middleware. Local `next dev` is
+all-Node, so middleware code can pass locally and fail on the preview
+(Node-only APIs, missing polyfills). Test on the preview deploy before
+promoting to main.
 
 Main branch must always be deployable. If a broken build reaches `main`,
 revert immediately with `git reset --hard` to the last known working tag.
 
 ### Dev Preview Deployment
 
-Cloudflare Pages auto-deploys every push to `dev` to a preview URL
-(typically `dev.nachi3d-auth.pages.dev` or similar). Before requesting
-a merge to `main`, verify the preview URL renders correctly:
+Vercel auto-deploys every push to `dev` to a preview URL (the
+project's `dev` branch alias, typically
+`nachi3d-auth-git-dev-<team>.vercel.app`). Before requesting a merge
+to `main`, verify the preview URL renders correctly:
 
 1. Public verification page (`/v/<seeded-uid>?t=<token>`)
 2. Tamper page (invalid token)
@@ -119,7 +122,7 @@ This is MANDATORY before any merge to main.
 3. GitHub Actions workflow `ci.yml` fires on push to `main`:
    - Runs `npm run verify` (lint + typecheck + build)
    - Runs `npm run test:e2e` against a built preview
-4. Cloudflare Pages auto-deploys `main` to `verify.nachi3d.com`
+4. Vercel auto-deploys `main` to `verify.nachi3dlabs.com`
 5. Verify production renders correctly (same checklist as dev preview)
 
 ### Pre-merge version bump check
@@ -207,9 +210,12 @@ chore(db): add migration for verification_logs index
   Generate URLs with `npm run sign -- <nfc_uid> <piece_id>`, which
   imports the same `signToken()` helper as the runtime — never
   reimplement the HMAC outside `lib/hmac.ts`.
-- **Cloudflare headers** — verification logs read `CF-IPCountry` and
-  `CF-IPCity` for geo. Available only when deployed; locally they're
-  null and that's fine.
+- **Vercel headers** — verification logs read `x-vercel-ip-country`
+  for `ip_country` and `x-vercel-ip-country-region` (with a fallback
+  to `x-vercel-ip-city`) for `ip_region`. Available only when
+  deployed; locally they're null and that's fine. Note that
+  `x-vercel-ip-city` is URL-encoded by Vercel (spaces → `%20`); the
+  log column currently stores it as-is.
 - **PDF** — `pdf-lib` for card generation (Phase 3). Better Arabic/RTL
   than react-pdf.
 - **Email** — Resend, configured as Supabase Auth SMTP provider

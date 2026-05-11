@@ -54,7 +54,7 @@ LATIN_RANGES = [
 # keeps combining marks (shaddah, kasra, fatha…) and punctuation in
 # their U+0600–U+06FF positions, so we keep the whole Arabic block. We
 # keep Latin ranges too because the AR notice contains embedded Latin
-# runs ("Nachi3D", "NFC", "QR", "verify.nachi3d.com") drawn with the
+# runs ("Nachi3D", "NFC", "QR", "verify.nachi3dlabs.com") drawn with the
 # same Noto Sans Arabic font.
 ARABIC_RANGES = LATIN_RANGES + [
     (0x0600, 0x06FF),  # arabic block (letters + harakat + punctuation)

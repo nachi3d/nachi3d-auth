@@ -3,7 +3,7 @@
 Authentication registry and public verification page for **Nachi3D** resin
 figurines. Each piece ships with an embedded NTAG215 NFC chip and a printed
 certificate card; both link to a per-piece verification URL on
-`verify.nachi3d.com`.
+`verify.nachi3dlabs.com`.
 
 This repo is the web app that serves those URLs, gates the admin tools,
 and stores the canonical record of every piece I produce.
@@ -16,7 +16,7 @@ and stores the canonical record of every piece I produce.
 | Backend | Supabase (Postgres + Auth + Storage) |
 | Styling | Tailwind CSS v4 |
 | i18n | `next-intl` (FR / EN / AR + RTL) |
-| Deployment | Cloudflare Pages |
+| Deployment | Vercel |
 | Testing | Playwright (E2E) |
 | Email (Phase 4) | Resend |
 | PDF (Phase 3) | `pdf-lib` |
@@ -106,7 +106,7 @@ server-side via the service-role key (which bypasses RLS by design).
 The chip stores a URL of the form
 
 ```
-https://verify.nachi3d.com/v/<nfc_uid>?t=<token>
+https://verify.nachi3dlabs.com/v/<nfc_uid>?t=<token>
 ```
 
 where `token = HMAC-SHA256(HMAC_SECRET, "<nfc_uid>:<piece_id>")`,
@@ -173,7 +173,7 @@ opens `POST /api/test/signin`, an endpoint that mints a Supabase
 session cookie from any (email, password) pair without a magic link.
 That is exactly the bypass we want locally and exactly the bypass we
 must NOT ship — confirm `E2E_TEST_LOGIN_ENABLED` is unset on
-Cloudflare Pages before every promotion of `dev` → `main` (see the
+Vercel before every promotion of `dev` → `main` (see the
 "Production deployment checklist" below). The script hard-fails when
 the flag is missing or when the dev server is not reachable on
 `http://localhost:3000`, so you cannot accidentally point it at prod.
@@ -202,14 +202,15 @@ Both share the test password `nachi3d-test-password`.
 
 ## Production deployment checklist
 
-**Required on Cloudflare Pages (production):** all five vars from the
-table above — `NEXT_PUBLIC_SITE_URL` (set to `https://verify.nachi3d.com`,
+**Required on Vercel (production):** all five vars from the
+table above — `NEXT_PUBLIC_SITE_URL` (set to `https://verify.nachi3dlabs.com`,
 no trailing slash), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
 `SUPABASE_SERVICE_ROLE_KEY`, and `HMAC_SECRET`. The two `NEXT_PUBLIC_*`
 values are exposed to the browser by design (RLS protects the data); the
 service role key and HMAC secret are server-only and must be stored as
-encrypted Cloudflare Pages environment variables, never in
-`wrangler.toml`, never echoed in build logs. Rotating `HMAC_SECRET`
+encrypted Vercel environment variables (Project Settings → Environment
+Variables), never in `vercel.json` or any committed config, never echoed
+in build logs. Rotating `HMAC_SECRET`
 invalidates every chip already programmed in the field — only do it as
 part of a deliberate revocation event. Also set
 `app.hmac_secret = '<HMAC_SECRET>'` on the production Postgres database
@@ -226,7 +227,7 @@ magic-link round-trips, but in production it would let anyone with a
 known password mint a session for that account, defeating the
 magic-link-only auth posture. The route returns 404 unless the flag
 is set to exactly `1`, but the safest posture is to never set it on
-the prod environment at all — confirm it is unset on Cloudflare Pages
+the prod environment at all — confirm it is unset on Vercel
 before each promotion of `dev` → `main`.
 
 ## Card PDF fonts

@@ -13,7 +13,7 @@ import "server-only";
  * these directly, so no shaping engine is required at render time.
  *
  * For mixed-direction lines (Arabic with embedded Latin tokens like
- * "Nachi3D" or "verify.nachi3d.com"), pdf-lib also has no bidi engine.
+ * "Nachi3D" or "verify.nachi3dlabs.com"), pdf-lib also has no bidi engine.
  * toRtlVisualOrder() does a small, pragmatic UAX#9-flavoured reorder:
  * runs of Arabic chars are internally reversed and the run *order* is
  * reversed for the RTL paragraph direction. Latin runs keep their
