@@ -23,10 +23,14 @@ const PAGE_WIDTH = (A6_WIDTH_MM + 2 * BLEED_MM) * MM; // 111 mm
 const PAGE_HEIGHT = (A6_HEIGHT_MM + 2 * BLEED_MM) * MM; // 154 mm
 const SAFE_MARGIN = (BLEED_MM + 8) * MM; // 11 mm from page edge
 
+// Card stays tonally distinct from the digital page: the physical product
+// retains a matte-black ground, with the primary violet (#6C63FF) standing
+// in for the previous brass/gold accent. Keep PRIMARY in 0..1 sRGB so it
+// matches the on-screen --color-primary-500 token byte-for-byte.
 const INK_DARK = rgb(0.04, 0.04, 0.035);
 const INK_LIGHT = rgb(0.95, 0.95, 0.93);
 const INK_MUTED = rgb(0.6, 0.6, 0.57);
-const BRASS = rgb(0.788, 0.647, 0.353);
+const PRIMARY = rgb(0x6c / 255, 0x63 / 255, 0xff / 255);
 const RED_ALERT = rgb(0.84, 0.32, 0.32);
 void RED_ALERT;
 
@@ -99,7 +103,11 @@ async function loadFonts(pdf: PDFDocument): Promise<CardFonts> {
     const bytes = ttfs[key];
     if (bytes) {
       try {
-        return await pdf.embedFont(bytes, { subset: true });
+        // subset:false on purpose — see lib/pdf/fonts.ts header for the
+        // full story. Short version: pdf-lib 1.17.1's subsetter mangles
+        // glyph IDs, the TTFs in public/fonts/ are pre-trimmed by
+        // scripts/prepare-fonts.py instead.
+        return await pdf.embedFont(bytes, { subset: false });
       } catch {
         // fall through to standard font on any embed failure
       }
@@ -214,7 +222,7 @@ async function drawFront(
     y: PAGE_HEIGHT - SAFE_MARGIN - 22,
     size: 6.5,
     font: fonts.sansRegular,
-    color: BRASS,
+    color: PRIMARY,
   });
 
   // Piece number — large mono, centred
@@ -336,7 +344,7 @@ function drawBack(
     y: PAGE_HEIGHT - SAFE_MARGIN - 10,
     size: 6.5,
     font: fonts.sansRegular,
-    color: BRASS,
+    color: PRIMARY,
   });
 
   // EN notice
@@ -462,7 +470,7 @@ function drawMetaPair(
     y,
     size: 6.5,
     font: fonts.sansRegular,
-    color: BRASS,
+    color: PRIMARY,
   });
   page.drawText(value, {
     x,

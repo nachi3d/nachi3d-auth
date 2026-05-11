@@ -143,6 +143,50 @@ npx playwright test tests/e2e/verification.spec.ts --ui
 Tests auto-start the dev server. Set `PLAYWRIGHT_BASE_URL=https://...`
 to run them against a deployed preview instead.
 
+## Local manual testing
+
+Magic-link auth is the only sanctioned way into `/admin` and `/me`,
+which makes manual smoke-testing painful (round-trip through email
+every time). For local dev there's a helper script that signs in
+through the same `/api/test/signin` bypass the e2e suite uses, and
+opens a Chrome window with the session cookies already attached.
+
+```bash
+# Start the dev server in one terminal
+npm run dev
+
+# In another terminal — opens system Chrome at /fr/admin signed in as admin
+npm run dev:signin
+
+# Sign in as the collector to smoke-test /me (Phase 4) or non-admin gates
+npm run dev:signin -- --email collector@nachi3d.test --url /fr/me
+
+# Any path works — relative paths are resolved against http://localhost:3000
+npm run dev:signin -- --url /en/admin/pieces
+```
+
+The script keeps Chrome open until you close it. Close the browser
+window to exit `dev:signin`.
+
+**Requires `E2E_TEST_LOGIN_ENABLED=1` in `.env.local`.** This flag
+opens `POST /api/test/signin`, an endpoint that mints a Supabase
+session cookie from any (email, password) pair without a magic link.
+That is exactly the bypass we want locally and exactly the bypass we
+must NOT ship — confirm `E2E_TEST_LOGIN_ENABLED` is unset on
+Cloudflare Pages before every promotion of `dev` → `main` (see the
+"Production deployment checklist" below). The script hard-fails when
+the flag is missing or when the dev server is not reachable on
+`http://localhost:3000`, so you cannot accidentally point it at prod.
+
+The two seed accounts are created by `npm run db:seed`:
+
+| Email | Role |
+|---|---|
+| `admin@nachi3d.test` | `is_admin = true` |
+| `collector@nachi3d.test` | `is_admin = false` |
+
+Both share the test password `nachi3d-test-password`.
+
 ## Environment variables
 
 | Name | Where | Why |
@@ -198,11 +242,22 @@ extra step. To bump a version after upstream fixes, delete the file
 and run:
 
 ```bash
-npm run fetch:fonts        # idempotent; redownloads any missing font
+npm run fetch:fonts        # downloads then runs prepare-fonts.py
 ```
 
 The script pulls from `github.com/google/fonts` and rejects the
 build if a URL 404s — never substitute a non-OFL family.
+
+The committed TTFs are not raw upstream files: `fetch:fonts` chains
+`scripts/prepare-fonts.py`, which pins variable-font axes to a single
+static instance, subsets each TTF to just the codepoints the card
+draws, and strips OpenType layout tables (GSUB/GPOS). This is
+mandatory — pdf-lib 1.17.1's subsetter mis-renders fonts carrying
+those tables (entire words lose characters), so the card embeds the
+TTFs whole and relies on this step to keep them small (~140 KB total
+across the four families). Re-running `fetch:fonts` therefore
+requires Python 3 with `fontTools` (`pip install fonttools`); fresh
+clones don't need either since the prepared TTFs are committed.
 
 ## Roadmap
 

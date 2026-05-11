@@ -149,7 +149,7 @@ export function PieceForm({
       {state.ok ? (
         <p
           data-testid="form-saved"
-          className="rounded-sm border border-brass-400/40 bg-brass-400/10 px-4 py-3 text-sm text-brass-300"
+          className="rounded-sm border border-primary-500/40 bg-primary-500/10 px-4 py-3 text-sm text-primary-400"
         >
           {labels.saved}
         </p>
@@ -271,7 +271,7 @@ export function PieceForm({
       </fieldset>
 
       <section>
-        <h3 className="mb-4 text-xs uppercase tracking-[0.2em] text-ink-400">
+        <h3 className="mb-4 text-xs uppercase tracking-[0.2em] text-dark-text-200">
           {labels.photos}
         </h3>
         {mode === "edit" && pieceId ? (
@@ -282,13 +282,13 @@ export function PieceForm({
             labels={labels.photoLabels}
           />
         ) : (
-          <p className="rounded-sm border border-dashed border-ink-700 px-4 py-6 text-center text-sm text-ink-500">
+          <p className="rounded-sm border border-dashed border-dark-700 px-4 py-6 text-center text-sm text-dark-text-200">
             {labels.photoLabels.addAfterCreate}
           </p>
         )}
       </section>
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-ink-700 pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-dark-700 pt-6">
         <SubmitButton
           variant="ghost"
           onClick={() => setStatusBeforeSubmit("draft")}
@@ -337,7 +337,7 @@ function Field({
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-ink-400">
+      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-dark-text-200">
         {label}
         {required ? " *" : ""}
       </span>
@@ -350,10 +350,10 @@ function Field({
         min={min}
         autoCapitalize={autoCapitalize}
         data-testid={testid}
-        className="w-full rounded-sm border border-ink-600 bg-ink-800 px-3 py-2 text-ink-100 outline-none focus:border-brass-400 disabled:cursor-not-allowed disabled:bg-ink-900 disabled:text-ink-500"
+        className="w-full rounded-sm border border-dark-700 bg-dark-800 px-3 py-2 text-dark-text-100 outline-none transition focus:border-primary-500 disabled:cursor-not-allowed disabled:bg-dark-900 disabled:text-dark-text-200"
       />
       {hint ? (
-        <p className="mt-1 text-xs text-ink-400">{hint}</p>
+        <p className="mt-1 text-xs text-dark-text-200">{hint}</p>
       ) : null}
       {errors?.map((msg) => (
         <p key={msg} className="mt-1 text-xs text-red-400">
@@ -381,7 +381,7 @@ function TextAreaField({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-ink-400">
+      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-dark-text-200">
         {label}
       </span>
       <textarea
@@ -389,7 +389,7 @@ function TextAreaField({
         defaultValue={defaultValue}
         rows={rows ?? 3}
         data-testid={testid}
-        className="w-full rounded-sm border border-ink-600 bg-ink-800 px-3 py-2 text-ink-100 outline-none focus:border-brass-400"
+        className="w-full rounded-sm border border-dark-700 bg-dark-800 px-3 py-2 text-dark-text-100 outline-none transition focus:border-primary-500"
       />
       {errors?.map((msg) => (
         <p key={msg} className="mt-1 text-xs text-red-400">
@@ -419,7 +419,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-ink-400">
+      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-dark-text-200">
         {label}
       </span>
       <select
@@ -427,7 +427,7 @@ function SelectField({
         defaultValue={defaultValue}
         onChange={(e) => onChange?.(e.target.value)}
         data-testid={testid}
-        className="w-full rounded-sm border border-ink-600 bg-ink-800 px-3 py-2 text-ink-100 outline-none focus:border-brass-400"
+        className="w-full rounded-sm border border-dark-700 bg-dark-800 px-3 py-2 text-dark-text-100 outline-none transition focus:border-primary-500"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -458,8 +458,8 @@ function SubmitButton({
   const { pending } = useFormStatus();
   const cls =
     variant === "primary"
-      ? "bg-brass-400 text-ink-900 hover:bg-brass-300"
-      : "border border-ink-600 text-ink-100 hover:border-brass-400";
+      ? "bg-primary-500 text-white hover:bg-primary-600"
+      : "border border-dark-700 text-dark-text-100 hover:border-primary-500 hover:text-primary-400";
   return (
     <button
       type="submit"

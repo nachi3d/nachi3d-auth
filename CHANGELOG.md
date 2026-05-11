@@ -4,6 +4,60 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-05-11
+
+Phase 3.5 — brand palette rollout across every surface, drag-and-drop
+photo uploads, and a pile of PDF-card fixes uncovered the first time
+we actually opened the generated cards in a viewer.
+
+### ✨ Features
+
+- **Brand palette across the app.** Every surface now matches the
+  nachi3d.com palette (violet primary, orange accent). Theme tokens
+  and self-hosted Inter / Cormorant Garamond / JetBrains Mono / Noto
+  Sans Arabic live in `app/[locale]/globals.css` and `public/fonts/`.
+  Verification page gets a violet→orange gradient on the piece number;
+  landing, admin surfaces, and the claim placeholder pick up the same
+  tokens. Certificate-card PDF swaps the old brass accent for the
+  primary violet.
+- **Drag-and-drop OS files on the photo uploader.** Admin piece
+  editor's photo picker now accepts files dropped from Finder /
+  Explorer, not only the click-to-browse path.
+- **`npm run dev:signin`.** New `scripts/dev-signin.ts` runs the
+  test-only password signin against a local dev server for quick
+  manual smoke-testing without going through magic-link email.
+
+### 🐛 Bug fixes
+
+- **PDF card text was unreadable in viewers.** `pdf-lib` 1.17.1's
+  subsetter mis-renumbers glyph IDs for variable fonts and for static
+  fonts carrying GSUB/GPOS layout tables, so Latin runs ("Nachi3D",
+  "Test Subject", the back-page notice) rendered as scrambled glyphs
+  on the printed card even though `pdf-parse` extracted clean text via
+  the ToUnicode tables. Fix: pre-subset the OFL TTFs to static,
+  layout-free WOFF2-equivalents via a new
+  `scripts/prepare-fonts.py` (fontTools) and load those instead. A
+  glyph-integrity assertion in `tests/e2e/cards.spec.ts` now fails
+  loudly if any future font swap regresses this.
+- **Card downloads now force `.pdf` filenames.** The "Generate card
+  PDF" link previously inherited the route segment as the filename in
+  some browsers, dropping the extension. `Content-Disposition` now
+  pins `filename="nachi3d-certify-piece-XXXX.pdf"` and an e2e test
+  drives a real click to assert the downloaded blob lands with the
+  `.pdf` suffix.
+- **`seed-remote` is deterministic across re-runs.** The helper now
+  purges non-seed pieces in addition to upserting the canonical one,
+  so re-running the Playwright suite against the hosted DB doesn't
+  pile up orphan rows from previous runs.
+
+### 🔧 Internal
+
+- New regression test in `tests/e2e/cards.spec.ts` drives a real
+  click on the admin card link and asserts the download triggers
+  with the correct `.pdf` filename and viewable Latin glyphs — the
+  pair of checks that would have caught the v0.2.0 PDF rendering bug
+  earlier if we had been opening the generated PDFs.
+
 ## [0.2.0] — 2026-05-07
 
 Phase 3 — print-ready certificate cards, verification page polish, and

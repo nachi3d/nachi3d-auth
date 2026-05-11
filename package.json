@@ -1,6 +1,6 @@
 {
   "name": "nachi3d-auth",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Nachi3D Certify — NFC/QR-backed authentication registry for Nachi3D resin figurines.",
   "scripts": {
@@ -14,6 +14,7 @@
     "db:push": "supabase db push",
     "db:reset": "supabase db reset --linked",
     "db:seed": "tsx scripts/seed-remote.ts",
+    "dev:signin": "tsx scripts/dev-signin.ts",
     "sign": "tsx scripts/sign-token.ts",
     "fetch:fonts": "tsx scripts/fetch-fonts.ts"
   },
@@ -34,12 +35,14 @@
     "@playwright/test": "^1.50.0",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.10.0",
+    "@types/pdf-parse": "^1.1.5",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "dotenv": "^16.4.0",
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.5.0",
+    "pdf-parse": "^2.4.5",
     "tailwindcss": "^4.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"

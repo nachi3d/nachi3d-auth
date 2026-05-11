@@ -241,7 +241,7 @@ function PieceVerificationView({
   return (
     <main
       data-testid="verification-piece-card"
-      className="mx-auto max-w-2xl px-6 py-12 md:py-16"
+      className="brand-atmosphere mx-auto max-w-2xl px-6 py-12 md:py-16"
     >
       <div className="mb-8 flex flex-col items-start gap-3">
         <AuthenticatedSeal label={labels.authenticated} />
@@ -255,13 +255,15 @@ function PieceVerificationView({
 
       <p
         data-testid="verification-piece-number"
-        className="font-mono text-5xl tracking-tight text-ink-50 md:text-6xl"
+        className="font-mono text-5xl tracking-tight md:text-6xl"
       >
-        #{pad4(piece.piece_number)}
+        <span className="brand-gradient-text">
+          #{pad4(piece.piece_number)}
+        </span>
         {labels.edition ? (
           <span
             data-testid="verification-edition"
-            className="ml-3 text-2xl text-ink-400 md:text-3xl"
+            className="ml-3 text-2xl text-dark-text-200 md:text-3xl"
           >
             {labels.edition}
           </span>
@@ -270,7 +272,7 @@ function PieceVerificationView({
 
       <h1
         data-testid="verification-character-name"
-        className="mt-4 text-3xl font-serif font-light leading-tight text-ink-50 md:text-4xl"
+        className="mt-4 text-3xl font-serif font-light leading-tight text-white md:text-4xl"
       >
         {piece.character_name}
       </h1>
@@ -284,21 +286,21 @@ function PieceVerificationView({
 
       <dl
         data-testid="piece-meta"
-        className="mt-10 grid grid-cols-2 gap-6 border-t border-ink-700 pt-8 text-sm"
+        className="mt-10 grid grid-cols-2 gap-6 border-t border-dark-700 pt-8 text-sm"
       >
         <div>
-          <dt className="mb-1 text-xs uppercase tracking-[0.2em] text-ink-400">
+          <dt className="mb-1 text-xs uppercase tracking-[0.2em] text-dark-text-200">
             {labels.sculptDate}
           </dt>
-          <dd className="text-ink-200">
+          <dd className="text-dark-text-100">
             {formatDate(piece.sculpt_date, locale)}
           </dd>
         </div>
         <div>
-          <dt className="mb-1 text-xs uppercase tracking-[0.2em] text-ink-400">
+          <dt className="mb-1 text-xs uppercase tracking-[0.2em] text-dark-text-200">
             {labels.paintDate}
           </dt>
-          <dd className="text-ink-200">
+          <dd className="text-dark-text-100">
             {formatDate(piece.paint_date, locale)}
           </dd>
         </div>

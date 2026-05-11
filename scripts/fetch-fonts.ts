@@ -1,8 +1,10 @@
 #!/usr/bin/env tsx
 /**
- * Download/refresh the SIL OFL TTF files used by the card PDF generator.
+ * Download/refresh the SIL OFL TTF files used by the card PDF generator,
+ * then hand them to scripts/prepare-fonts.py to instance the variable
+ * axes and pre-subset to just the glyph ranges the card draws.
  *
- *   npm run fetch:fonts
+ *   npm run fetch:fonts        # download + prepare
  *
  * Files land in public/fonts/ — they are committed to the repo, so
  * fresh clones and CI builds do NOT need to run this script. Use it
@@ -14,9 +16,16 @@
  * (the upstream registry the Google Fonts CDN serves from). If a URL 404s
  * upstream, replace it with the matching path from the project's release
  * tarball — never substitute a non-OFL family.
+ *
+ * The prepare step requires Python 3 with fontTools installed
+ * (`pip install fonttools`). It is non-optional: pdf-lib 1.17.1's
+ * subsetter mis-renders fonts that ship GSUB/GPOS layout tables or
+ * variable-axis data, so the TTFs we commit must be pre-trimmed by
+ * prepare-fonts.py before they are usable by the card route.
  */
 import path from "node:path";
 import fs from "node:fs/promises";
+import { spawn } from "node:child_process";
 
 const FONT_DIR = path.resolve(process.cwd(), "public", "fonts");
 
@@ -128,6 +137,20 @@ async function downloadLicense(license: LicenseDownload): Promise<void> {
   process.stdout.write(`${(buf.byteLength / 1024).toFixed(1)} KB\n`);
 }
 
+async function runPreparePy(): Promise<void> {
+  process.stdout.write(`\n→ prepare-fonts.py (instance axes + pre-subset)\n`);
+  const script = path.join(__dirname, "prepare-fonts.py");
+  const bin = process.platform === "win32" ? "python" : "python3";
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(bin, [script], { stdio: "inherit" });
+    child.on("error", reject);
+    child.on("exit", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`prepare-fonts.py exited with code ${code}`));
+    });
+  });
+}
+
 async function main() {
   await fs.mkdir(FONT_DIR, { recursive: true });
   for (const font of FONTS) {
@@ -136,6 +159,7 @@ async function main() {
   for (const license of LICENSES) {
     await downloadLicense(license);
   }
+  await runPreparePy();
   process.stdout.write(
     `\nDone. Files in ${FONT_DIR}.\nAll fonts SIL OFL 1.1 — embedding permitted; license texts beside the TTFs.\n`,
   );
