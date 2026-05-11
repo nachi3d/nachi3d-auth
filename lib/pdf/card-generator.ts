@@ -103,7 +103,11 @@ async function loadFonts(pdf: PDFDocument): Promise<CardFonts> {
     const bytes = ttfs[key];
     if (bytes) {
       try {
-        return await pdf.embedFont(bytes, { subset: true });
+        // subset:false on purpose — see lib/pdf/fonts.ts header for the
+        // full story. Short version: pdf-lib 1.17.1's subsetter mangles
+        // glyph IDs, the TTFs in public/fonts/ are pre-trimmed by
+        // scripts/prepare-fonts.py instead.
+        return await pdf.embedFont(bytes, { subset: false });
       } catch {
         // fall through to standard font on any embed failure
       }

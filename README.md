@@ -242,11 +242,22 @@ extra step. To bump a version after upstream fixes, delete the file
 and run:
 
 ```bash
-npm run fetch:fonts        # idempotent; redownloads any missing font
+npm run fetch:fonts        # downloads then runs prepare-fonts.py
 ```
 
 The script pulls from `github.com/google/fonts` and rejects the
 build if a URL 404s — never substitute a non-OFL family.
+
+The committed TTFs are not raw upstream files: `fetch:fonts` chains
+`scripts/prepare-fonts.py`, which pins variable-font axes to a single
+static instance, subsets each TTF to just the codepoints the card
+draws, and strips OpenType layout tables (GSUB/GPOS). This is
+mandatory — pdf-lib 1.17.1's subsetter mis-renders fonts carrying
+those tables (entire words lose characters), so the card embeds the
+TTFs whole and relies on this step to keep them small (~140 KB total
+across the four families). Re-running `fetch:fonts` therefore
+requires Python 3 with `fontTools` (`pip install fonttools`); fresh
+clones don't need either since the prepared TTFs are committed.
 
 ## Roadmap
 

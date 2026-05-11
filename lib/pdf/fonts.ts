@@ -10,6 +10,15 @@ import fs from "node:fs/promises";
  * available for upgrading to a newer upstream release, but is not a
  * required setup step — fresh clones already have everything they need.
  *
+ * Important: the committed TTFs are NOT the raw upstream files. They
+ * are pre-processed by scripts/prepare-fonts.py: variable axes pinned
+ * to a single static instance, then subset to just the codepoints the
+ * card draws, with OpenType layout tables (GSUB/GPOS) stripped. This
+ * is non-cosmetic — pdf-lib 1.17.1's subsetter mis-renders fonts that
+ * carry GSUB/GPOS or variable-axis data (entire words drop characters),
+ * so card-generator.ts embeds these TTFs whole (`subset: false`) and
+ * relies on prepare-fonts.py to keep them small.
+ *
  * If a TTF is missing (e.g. a developer deleted one mid-upgrade), we
  * fall back to the matching standard PDF font (Helvetica / Times-Roman
  * / Times-Italic / Courier) so the route still produces a valid PDF
