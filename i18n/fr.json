@@ -64,6 +64,8 @@
       "editTitle": "Modifier la pièce #{number}",
       "createdBanner": "Pièce créée. Ajoutez des photos puis publiez lorsque vous serez prêt.",
       "empty": "Aucune pièce pour le moment. Cliquez sur « Nouvelle pièce » pour enregistrer la première.",
+      "galleryOn": "Galerie : ON",
+      "galleryHidden": "Masquée",
       "prev": "Précédent",
       "next": "Suivant",
       "pageOf": "Page {page} sur {total}",
@@ -88,7 +90,9 @@
         "saveDraft": "Enregistrer en brouillon",
         "publish": "Publier",
         "saved": "Enregistré.",
-        "uidLockedHint": "L'UID NFC est verrouillé dès qu'une pièce est publiée."
+        "uidLockedHint": "L'UID NFC est verrouillé dès qu'une pièce est publiée.",
+        "show_in_gallery": "Afficher dans la galerie publique",
+        "showInGalleryHint": "Décochez pour masquer cette pièce de /gallery tout en gardant /v/[uid] accessible."
       },
       "license": {
         "original": "Œuvre originale",

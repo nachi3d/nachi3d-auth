@@ -33,6 +33,8 @@ export function buildPieceFormLabels(
     publish: tForm("publish"),
     saved: tForm("saved"),
     uidLockedHint: tForm("uidLockedHint"),
+    show_in_gallery: tForm("show_in_gallery"),
+    showInGalleryHint: tForm("showInGalleryHint"),
     licenseOptions,
     photoLabels: {
       addPhotos: tPhotos("addPhotos"),

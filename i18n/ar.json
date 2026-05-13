@@ -64,6 +64,8 @@
       "editTitle": "تعديل القطعة #{number}",
       "createdBanner": "تم إنشاء القطعة. ارفع الصور ثم انشرها عندما تكون جاهزًا.",
       "empty": "لا توجد قطع بعد. انقر على «قطعة جديدة» لتسجيل أوّل قطعة.",
+      "galleryOn": "في المعرض",
+      "galleryHidden": "مخفية",
       "prev": "السابق",
       "next": "التالي",
       "pageOf": "الصفحة {page} من {total}",
@@ -88,7 +90,9 @@
         "saveDraft": "حفظ كمسودة",
         "publish": "نشر",
         "saved": "تم الحفظ.",
-        "uidLockedHint": "معرّف NFC مقفول بعد نشر القطعة."
+        "uidLockedHint": "معرّف NFC مقفول بعد نشر القطعة.",
+        "show_in_gallery": "إظهار في المعرض العام",
+        "showInGalleryHint": "ألغِ التحديد لإخفاء هذه القطعة من /gallery مع إبقاء /v/[uid] متاحًا."
       },
       "license": {
         "original": "عمل أصلي",

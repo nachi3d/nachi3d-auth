@@ -64,6 +64,8 @@
       "editTitle": "Edit piece #{number}",
       "createdBanner": "Piece created. Upload photos and publish when ready.",
       "empty": "No pieces yet. Click ‘New piece’ to register the first one.",
+      "galleryOn": "Gallery: ON",
+      "galleryHidden": "Hidden",
       "prev": "Previous",
       "next": "Next",
       "pageOf": "Page {page} of {total}",
@@ -88,7 +90,9 @@
         "saveDraft": "Save as draft",
         "publish": "Publish",
         "saved": "Saved.",
-        "uidLockedHint": "NFC UID is locked once a piece is published."
+        "uidLockedHint": "NFC UID is locked once a piece is published.",
+        "show_in_gallery": "Show in public gallery",
+        "showInGalleryHint": "Uncheck to keep this piece off /gallery while still verifiable via /v/[uid]."
       },
       "license": {
         "original": "Original work",

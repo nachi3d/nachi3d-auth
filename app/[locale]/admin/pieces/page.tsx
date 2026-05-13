@@ -123,17 +123,31 @@ export default async function AdminPiecesListPage({
                   </span>
                 </span>
               </Link>
-              <span
-                className={
-                  "ml-3 rounded-sm px-2 py-0.5 text-xs uppercase tracking-wider " +
-                  (row.status === "published"
-                    ? "bg-primary-500/20 text-primary-400"
-                    : row.status === "archived"
-                      ? "bg-dark-800 text-dark-text-200"
-                      : "bg-dark-800 text-dark-text-100")
-                }
-              >
-                {t(`status.${row.status}`)}
+              <span className="ml-3 flex items-center gap-2">
+                <span
+                  data-testid="piece-gallery-badge"
+                  data-state={row.show_in_gallery ? "on" : "hidden"}
+                  className={
+                    "rounded-sm px-2 py-0.5 text-[10px] uppercase tracking-wider " +
+                    (row.show_in_gallery
+                      ? "bg-primary-500/15 text-primary-400"
+                      : "bg-dark-800 text-dark-text-200")
+                  }
+                >
+                  {row.show_in_gallery ? t("galleryOn") : t("galleryHidden")}
+                </span>
+                <span
+                  className={
+                    "rounded-sm px-2 py-0.5 text-xs uppercase tracking-wider " +
+                    (row.status === "published"
+                      ? "bg-primary-500/20 text-primary-400"
+                      : row.status === "archived"
+                        ? "bg-dark-800 text-dark-text-200"
+                        : "bg-dark-800 text-dark-text-100")
+                  }
+                >
+                  {t(`status.${row.status}`)}
+                </span>
               </span>
             </li>
           ))}
