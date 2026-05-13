@@ -147,6 +147,20 @@
       "errors": {
         "title": "Impossible d'enregistrer",
         "fallback": "Vérifiez les champs en surbrillance."
+      },
+      "danger": {
+        "sectionTitle": "Zone dangereuse",
+        "subtitle": "Supprimer définitivement",
+        "body": "La suppression est irréversible. Si une puce NFC a été programmée pour cette pièce, elle ne pourra plus être vérifiée. Toutes les photos, le PDF en cache, l'historique de provenance et les logs de vérification seront perdus.",
+        "openButton": "Supprimer cette pièce",
+        "modalTitle": "Confirmer la suppression de la pièce #{number}",
+        "modalPrompt": "Tapez le numéro de pièce ({number}) ci-dessous pour confirmer.",
+        "inputLabel": "Numéro de pièce",
+        "confirm": "Supprimer définitivement",
+        "deleting": "Suppression…",
+        "cancel": "Annuler",
+        "errorFallback": "La suppression a échoué. La pièce est intacte.",
+        "deletedBanner": "Pièce #{number} supprimée définitivement."
       }
     }
   },
@@ -154,5 +168,21 @@
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
     "loginRequired": "Veuillez vous connecter pour continuer."
+  },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Accès réservé aux administrateurs.",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "submitting": "Connexion…",
+    "errors": {
+      "invalid": "Email ou mot de passe incorrect",
+      "denied": "Accès refusé",
+      "validation": "Saisissez un email et un mot de passe valides."
+    },
+    "banner": {
+      "accessDenied": "Accès refusé. Ce compte n'a pas les privilèges d'administrateur."
+    }
   }
 }

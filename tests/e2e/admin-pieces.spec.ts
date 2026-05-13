@@ -175,6 +175,178 @@ test.describe("Phase 2 — admin pieces", () => {
       expect(body.error).toBe("uid_locked");
     });
 
+    test("hard delete: end-to-end create -> delete clears DB row + photo storage", async ({
+      page,
+      request,
+    }) => {
+      test.setTimeout(60_000);
+      const uid = uniqueUid("DE");
+      const pieceNumber = 9700 + Math.floor(Math.random() * 200);
+
+      const create = await request.post("/api/admin/pieces", {
+        data: {
+          nfc_uid: uid,
+          piece_number: pieceNumber,
+          edition_number: null,
+          edition_total: null,
+          character_name: "Delete Me",
+          character_quote: null,
+          license_status: "original",
+          license_notes: null,
+          sculpt_date: "2026-04-01",
+          paint_date: "2026-04-15",
+          photos: [],
+          status: "draft",
+        },
+      });
+      expect(create.status()).toBe(201);
+      const { piece } = (await create.json()) as { piece: { id: string } };
+
+      // Upload one photo so we exercise the photo-folder cleanup path.
+      // The piece-photos bucket is public, so the URL is reachable until
+      // the storage object is removed.
+      const TINY_PNG_BASE64 =
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+      const png = Buffer.from(TINY_PNG_BASE64, "base64");
+      const upload = await request.post("/api/admin/photos", {
+        multipart: {
+          piece_id: piece.id,
+          file: {
+            name: "delete-me.png",
+            mimeType: "image/png",
+            buffer: png,
+          },
+        },
+      });
+      expect(upload.status()).toBe(201);
+      const { url: photoUrl } = (await upload.json()) as { url: string };
+
+      // Open the edit page, confirm, delete.
+      await page.goto(`/en/admin/pieces/${piece.id}/edit`);
+      await page.getByTestId("danger-zone-open").click();
+      await expect(page.getByTestId("delete-modal")).toBeVisible();
+      await page.getByTestId("delete-modal-input").fill(String(pieceNumber));
+      await page.getByTestId("delete-modal-confirm").click();
+
+      // Server redirects to the list with ?deleted=NNNN.
+      await page.waitForURL(/\/en\/admin\/pieces\?deleted=\d+/);
+      const banner = page.getByTestId("piece-deleted-banner");
+      await expect(banner).toBeVisible();
+      await expect(banner).toHaveAttribute(
+        "data-piece-number",
+        String(pieceNumber),
+      );
+
+      // DB row is gone — GET /api/admin/pieces/[id] returns 404.
+      const getAfter = await request.get(`/api/admin/pieces/${piece.id}`);
+      expect(getAfter.status()).toBe(404);
+
+      // The piece-photos bucket folder is cleared. The previously
+      // public URL now 404s. Storage caching behaviour can lag for a
+      // moment, so allow a single short retry.
+      let photoStatus = (await request.get(photoUrl)).status();
+      if (photoStatus < 400) {
+        await new Promise((r) => setTimeout(r, 800));
+        photoStatus = (await request.get(photoUrl)).status();
+      }
+      expect(photoStatus).toBeGreaterThanOrEqual(400);
+
+      // The list page no longer renders this piece's row.
+      await page.goto("/en/admin/pieces?status=all");
+      await expect(
+        page.locator(`[data-testid="piece-row"]:has-text("#${pieceNumber}")`),
+      ).toHaveCount(0);
+    });
+
+    test("hard delete modal: wrong piece number keeps confirm disabled", async ({
+      page,
+      request,
+    }) => {
+      const uid = uniqueUid("AC");
+      const pieceNumber = 9300 + Math.floor(Math.random() * 200);
+      const create = await request.post("/api/admin/pieces", {
+        data: {
+          nfc_uid: uid,
+          piece_number: pieceNumber,
+          edition_number: null,
+          edition_total: null,
+          character_name: "Modal Subject",
+          character_quote: null,
+          license_status: "original",
+          license_notes: null,
+          sculpt_date: "2026-04-01",
+          paint_date: "2026-04-15",
+          photos: [],
+          status: "draft",
+        },
+      });
+      expect(create.status()).toBe(201);
+      const { piece } = (await create.json()) as { piece: { id: string } };
+
+      await page.goto(`/en/admin/pieces/${piece.id}/edit`);
+      await page.getByTestId("danger-zone-open").click();
+
+      const input = page.getByTestId("delete-modal-input");
+      const confirm = page.getByTestId("delete-modal-confirm");
+
+      // Empty -> disabled.
+      await expect(confirm).toBeDisabled();
+
+      // Wrong number -> disabled.
+      await input.fill(String(pieceNumber + 1));
+      await expect(input).toHaveAttribute("data-matches", "false");
+      await expect(confirm).toBeDisabled();
+
+      // Correct number with leading zeros (forgiving normalization).
+      await input.fill(`000${pieceNumber}`);
+      await expect(input).toHaveAttribute("data-matches", "true");
+      await expect(confirm).toBeEnabled();
+
+      // Cleanup so we don't leave the fixture behind. (The pruning in
+      // seed-remote handles future runs, but it's tidy to delete now.)
+      const del = await request.delete(`/api/admin/pieces/${piece.id}`);
+      expect(del.ok()).toBeTruthy();
+    });
+
+    test("hard delete modal: cancel closes modal without deleting", async ({
+      page,
+      request,
+    }) => {
+      const uid = uniqueUid("AD");
+      const pieceNumber = 9500 + Math.floor(Math.random() * 200);
+      const create = await request.post("/api/admin/pieces", {
+        data: {
+          nfc_uid: uid,
+          piece_number: pieceNumber,
+          edition_number: null,
+          edition_total: null,
+          character_name: "Cancel Subject",
+          character_quote: null,
+          license_status: "original",
+          license_notes: null,
+          sculpt_date: "2026-04-01",
+          paint_date: "2026-04-15",
+          photos: [],
+          status: "draft",
+        },
+      });
+      expect(create.status()).toBe(201);
+      const { piece } = (await create.json()) as { piece: { id: string } };
+
+      await page.goto(`/en/admin/pieces/${piece.id}/edit`);
+      await page.getByTestId("danger-zone-open").click();
+      await page.getByTestId("delete-modal-input").fill(String(pieceNumber));
+      await page.getByTestId("delete-modal-cancel").click();
+      await expect(page.getByTestId("delete-modal")).toHaveCount(0);
+
+      // The piece is still there.
+      const stillThere = await request.get(`/api/admin/pieces/${piece.id}`);
+      expect(stillThere.status()).toBe(200);
+
+      // Tidy: delete via API to keep the test database clean.
+      await request.delete(`/api/admin/pieces/${piece.id}`);
+    });
+
     test("nfc uid uniqueness rejected at insert", async ({ request }) => {
       // Use the seeded UID in a new piece insert — must collide.
       const res = await request.post("/api/admin/pieces", {
@@ -227,12 +399,29 @@ test.describe("Phase 2 — admin pieces", () => {
       expect(body.error).toBe("forbidden");
     });
 
-    test("non-admin reaching /admin/pieces is redirected away", async ({
+    test("non-admin reaching /admin/pieces is redirected to /login", async ({
       page,
     }) => {
       await page.goto("/en/admin/pieces");
-      // redirected to /admin (which renders the "not authorized" panel)
-      await expect(page.getByTestId("admin-gate-denied")).toBeVisible();
+      // Phase 5-prep: the admin gate now redirects authenticated
+      // non-admins to /login with the access_denied banner instead of
+      // rendering an in-app 403 panel.
+      await page.waitForURL(/\/en\/login\?error=access_denied$/);
+      await expect(
+        page.getByTestId("login-banner-access-denied"),
+      ).toBeVisible();
+    });
+
+    test("non-admin DELETE /api/admin/pieces/[id] is rejected with 403", async ({
+      request,
+    }) => {
+      // Hit the seeded piece — it should not be touched (the guard
+      // rejects before any deletion happens), and the 403 confirms
+      // the gate is enforced server-side, not just in the modal UI.
+      const res = await request.delete(`/api/admin/pieces/${SEEDED_PIECE_ID}`);
+      expect(res.status()).toBe(403);
+      const body = await res.json();
+      expect(body.error).toBe("forbidden");
     });
   });
 

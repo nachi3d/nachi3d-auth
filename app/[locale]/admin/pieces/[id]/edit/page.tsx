@@ -1,10 +1,11 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { isLocale } from "@/i18n/routing";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminPage } from "@/lib/auth/admin-guard";
 import { getPieceById } from "@/lib/server/pieces";
 import { signToken } from "@/lib/hmac";
 import { PieceForm } from "@/components/admin/PieceForm";
+import { DangerZone } from "@/components/admin/DangerZone";
 import { buildPieceFormLabels } from "../../labels";
 
 export const dynamic = "force-dynamic";
@@ -22,17 +23,7 @@ export default async function EditPiecePage({
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect(`/${locale}`);
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!profile?.is_admin) redirect(`/${locale}/admin`);
+  await requireAdminPage(locale);
 
   const piece = await getPieceById(id);
   if (!piece) notFound();
@@ -43,8 +34,23 @@ export default async function EditPiecePage({
   const tPhotos = await getTranslations("admin.pieces.photos");
   const tErrors = await getTranslations("admin.pieces.errors");
   const tNfc = await getTranslations("admin.pieces.nfc");
+  const tDanger = await getTranslations("admin.pieces.danger");
 
   const labels = buildPieceFormLabels(tForm, tLicense, tPhotos, tErrors);
+  const paddedNumber = String(piece.piece_number).padStart(4, "0");
+  const dangerLabels = {
+    sectionTitle: tDanger("sectionTitle"),
+    subtitle: tDanger("subtitle"),
+    body: tDanger("body"),
+    openButton: tDanger("openButton"),
+    modalTitle: tDanger("modalTitle", { number: paddedNumber }),
+    modalPrompt: tDanger("modalPrompt", { number: paddedNumber }),
+    inputLabel: tDanger("inputLabel"),
+    confirm: tDanger("confirm"),
+    deleting: tDanger("deleting"),
+    cancel: tDanger("cancel"),
+    errorFallback: tDanger("errorFallback"),
+  };
 
   const siteUrl = (
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
@@ -111,6 +117,13 @@ export default async function EditPiecePage({
         initial={piece}
         defaultPieceNumber={piece.piece_number}
         labels={labels}
+      />
+
+      <DangerZone
+        pieceId={piece.id}
+        pieceNumber={piece.piece_number}
+        locale={locale}
+        labels={dangerLabels}
       />
     </main>
   );

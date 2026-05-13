@@ -147,6 +147,20 @@
       "errors": {
         "title": "Couldn't save",
         "fallback": "Please review the highlighted fields."
+      },
+      "danger": {
+        "sectionTitle": "Danger zone",
+        "subtitle": "Permanently delete",
+        "body": "Deletion is irreversible. If an NFC chip has been programmed for this piece, it will no longer verify. All photos, the cached PDF, the provenance history, and the verification logs will be lost.",
+        "openButton": "Delete this piece",
+        "modalTitle": "Confirm deletion of piece #{number}",
+        "modalPrompt": "Type the piece number ({number}) below to confirm.",
+        "inputLabel": "Piece number",
+        "confirm": "Delete permanently",
+        "deleting": "Deleting…",
+        "cancel": "Cancel",
+        "errorFallback": "Deletion failed. The piece is unchanged.",
+        "deletedBanner": "Piece #{number} permanently deleted."
       }
     }
   },
@@ -154,5 +168,21 @@
     "signIn": "Sign in",
     "signOut": "Sign out",
     "loginRequired": "Please sign in to continue."
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Admin access only.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "errors": {
+      "invalid": "Invalid credentials",
+      "denied": "Access denied",
+      "validation": "Enter a valid email and password."
+    },
+    "banner": {
+      "accessDenied": "Access denied. This account does not have admin privileges."
+    }
   }
 }

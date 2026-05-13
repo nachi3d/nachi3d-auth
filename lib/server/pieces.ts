@@ -8,6 +8,10 @@ import {
   type PieceInput,
   type PiecePatch,
 } from "@/lib/validation/piece";
+import {
+  deletePiecePhotos,
+  deletePieceCardPdf,
+} from "@/lib/storage/piece-assets";
 import type { PieceRow } from "@/lib/supabase/types";
 
 const PIECE_PHOTOS_BUCKET = "piece-photos";
@@ -336,6 +340,79 @@ export async function deletePhoto(
   if (error) {
     throw new PieceServerError(500, "storage_error", error.message);
   }
+}
+
+/**
+ * Hard-delete a piece and every asset that hangs off it. Irreversible.
+ *
+ * Order of operations is deliberately storage → DB:
+ *   1. cached PDF in the `cards` bucket
+ *   2. every photo under the `<id>/` prefix in `piece-photos`
+ *   3. row in `public.pieces` (the FKs on `provenance_events.piece_id`
+ *      and `verification_logs.piece_id` are ON DELETE CASCADE — see
+ *      20260503000000_initial_schema.sql — so the children disappear
+ *      with the parent and we don't manually delete them)
+ *
+ * Storage cleanup runs first because storage failures are recoverable
+ * (orphaned objects are easy to rm later) but a half-deleted DB row
+ * with live storage is not. If the DB delete fails we still throw.
+ *
+ * Storage failures before the DB delete are logged but do NOT abort
+ * the operation — operators have asked to delete the piece, and a
+ * stuck PDF in the cards bucket should not block that.
+ *
+ * Returns the deleted piece's piece_number so the caller can show
+ * "Piece #NNNN deleted" in the success banner without keeping a
+ * separate read-before-delete around.
+ */
+export async function deletePiece(id: string): Promise<{
+  deleted_piece_number: number;
+}> {
+  const supabase = createAdminClient();
+
+  const { data: existing, error: fetchErr } = await supabase
+    .from("pieces")
+    .select("id, piece_number")
+    .eq("id", id)
+    .maybeSingle();
+  if (fetchErr) {
+    throw new PieceServerError(500, "db_error", fetchErr.message);
+  }
+  if (!existing) {
+    throw new PieceServerError(404, "not_found", "Piece not found");
+  }
+
+  // Storage cleanup. Both helpers are idempotent and only throw on
+  // transport errors; missing files are treated as success. We log
+  // failures but continue so the DB row still gets deleted — leaving
+  // the row alive while the photos/PDF are unreachable would be the
+  // worse end state.
+  try {
+    await deletePieceCardPdf(id);
+  } catch (e) {
+    console.error(
+      `deletePiece(${id}): card PDF cleanup failed (continuing):`,
+      e instanceof Error ? e.message : e,
+    );
+  }
+  try {
+    await deletePiecePhotos(id);
+  } catch (e) {
+    console.error(
+      `deletePiece(${id}): photos cleanup failed (continuing):`,
+      e instanceof Error ? e.message : e,
+    );
+  }
+
+  const { error: deleteErr } = await supabase
+    .from("pieces")
+    .delete()
+    .eq("id", id);
+  if (deleteErr) {
+    throw new PieceServerError(500, "db_error", deleteErr.message);
+  }
+
+  return { deleted_piece_number: existing.piece_number };
 }
 
 export async function getPieceById(id: string): Promise<PieceRow | null> {

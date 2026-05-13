@@ -5,6 +5,7 @@ import {
   requireAdmin,
 } from "@/lib/auth/admin-guard";
 import {
+  deletePiece,
   getPieceById,
   PieceServerError,
   updatePiece,
@@ -37,6 +38,34 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
     return NextResponse.json({ piece });
+  } catch (e) {
+    if (e instanceof PieceServerError) {
+      return NextResponse.json(
+        { error: e.code, message: e.message },
+        { status: e.status },
+      );
+    }
+    throw e;
+  }
+}
+
+export async function DELETE(_req: NextRequest, ctx: Ctx) {
+  try {
+    await requireAdmin();
+  } catch (e) {
+    if (e instanceof AdminGuardError) {
+      return NextResponse.json(
+        { error: e.reason },
+        { status: adminGuardStatus(e.reason) },
+      );
+    }
+    throw e;
+  }
+
+  const { id } = await ctx.params;
+  try {
+    const result = await deletePiece(id);
+    return NextResponse.json({ ok: true, ...result });
   } catch (e) {
     if (e instanceof PieceServerError) {
       return NextResponse.json(

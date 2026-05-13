@@ -1,5 +1,7 @@
 import "server-only";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { Locale } from "@/i18n/routing";
 
 export class AdminGuardError extends Error {
   constructor(
@@ -40,4 +42,33 @@ export async function requireAdmin() {
 
 export function adminGuardStatus(reason: AdminGuardError["reason"]): number {
   return reason === "unauthenticated" ? 401 : 403;
+}
+
+/**
+ * Page-level guard for /[locale]/admin/* server components. Redirects
+ * unauthenticated visitors to the login page; redirects authenticated
+ * non-admins to /login?error=access_denied (the form shows a banner).
+ * Returns the resolved user + supabase client when access is granted.
+ */
+export async function requireAdminPage(locale: Locale) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/${locale}/login`);
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile?.is_admin) {
+    redirect(`/${locale}/login?error=access_denied`);
+  }
+
+  return { user, supabase };
 }
