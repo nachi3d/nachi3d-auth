@@ -60,7 +60,10 @@ test.describe("Phase 5-prep — admin login", () => {
       await page.getByTestId("login-submit").click();
 
       const err = page.getByTestId("login-error");
-      await expect(err).toBeVisible();
+      // Cold-compiled /en/login + remote Supabase signInWithPassword round
+      // trip routinely lands in the 5–10s range — same latency profile as
+      // the v0.4.0 timeout bumps in gallery.spec.ts / admin-pieces.spec.ts.
+      await expect(err).toBeVisible({ timeout: 15000 });
       await expect(err).toHaveAttribute("data-error-code", "invalid");
       // Still on /login, not redirected anywhere.
       expect(new URL(page.url()).pathname).toBe("/en/login");
