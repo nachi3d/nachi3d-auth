@@ -316,6 +316,16 @@ Before merging any branch, verify all of these still work:
 | Card PDF — anonymous | `GET /api/admin/cards/[id]` with no session | 401 |
 | Tamper page — no data leak | Bad token on `/v/<uid>` | Response HTML contains zero `character_name`, `character_quote`, `#NNNN`, or piece OG meta — re-asserted in tests |
 | OG meta on `/v/[uid]` | Valid token | `og:title`, `og:description`, `og:type`, `og:site_name`, `twitter:card` present and reference the piece |
+| Gallery renders published pieces | `/[locale]/gallery` | Seeded published piece appears in the grid; draft and `show_in_gallery=false` are absent |
+| Gallery `show_in_gallery=false` doesn't break verification | Same piece's `/v/<uid>?t=<token>` | Page still resolves with full data — gallery hides, verification doesn't |
+| Gallery license filter | Click any license chip | Visible cards update; backend refetches with the new filter |
+| Gallery search by character_name | Type in the search input | Already-loaded cards are filtered client-side, debounced |
+| Gallery card → /v/[uid] | Click a card | Navigates to `/v/<uid>?t=<token>` with a valid signed token (no tamper page) |
+| Gallery empty state | No published pieces | `gallery-empty` panel renders, no grid |
+| Sitemap content | `GET /sitemap.xml` | Returns valid XML containing each seeded published piece's `/v/<uid>?t=<token>` in all three locales |
+| Robots policy | `GET /robots.txt` | Returns 200 with `Sitemap:` declaration; disallows `/admin` + `/api` |
+| Gallery OG meta | `/[locale]/gallery` HTML | `og:title`, `og:description`, `og:type=website`, hero `og:image` when any published piece has a photo |
+| Admin `show_in_gallery` toggle | `/admin/pieces/[id]/edit` save | Server stores the toggle state; gallery query reflects the new value on next request |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -343,19 +353,23 @@ known issues" — either fix or explicitly ask the user how to proceed.
 |---|---|---|
 | `/[locale]` | Landing page (Nachi3D Certify intro) | Public |
 | `/[locale]/v/[uid]` | Public verification page | Public |
-| `/[locale]/me` | Owner dashboard (Phase 4) | Logged in |
+| `/[locale]/gallery` | Public gallery of published pieces (Phase 4) | Public |
+| `/[locale]/me` | Owner dashboard (Phase 5) | Logged in |
 | `/[locale]/admin` | Admin home | Admin only |
-| `/[locale]/admin/pieces` | Paginated list with status filter (Phase 2) | Admin only |
+| `/[locale]/admin/pieces` | Paginated list with status filter + gallery badge (Phase 2 + 4) | Admin only |
 | `/[locale]/admin/pieces/new` | Register piece (Phase 2) | Admin only |
-| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout (Phase 2) | Admin only |
-| `/[locale]/admin/analytics` | Analytics (Phase 5) | Admin only |
-| `/[locale]/admin/flags` | Fraud flags (Phase 5) | Admin only |
+| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout + gallery toggle (Phase 2 + 4) | Admin only |
+| `/[locale]/admin/analytics` | Analytics (Phase 6) | Admin only |
+| `/[locale]/admin/flags` | Fraud flags (Phase 6) | Admin only |
+| `/[locale]/api/gallery` | Gallery pagination JSON (Phase 4) | Public |
 | `POST /api/admin/pieces` | JSON insert; mirrors the form server action (Phase 2) | Admin only |
 | `GET/PATCH /api/admin/pieces/[id]` | JSON fetch/update; locked-uid enforced (Phase 2) | Admin only |
 | `POST /api/admin/photos` | multipart upload to `piece-photos` bucket (Phase 2) | Admin only |
 | `DELETE /api/admin/photos` | Remove a photo from a piece + bucket (Phase 2) | Admin only |
 | `GET /api/admin/cards/[id]` | A6 PDF certificate, cached in `cards` bucket (Phase 3) | Admin only |
-| `/[locale]/claim/coming-soon` | Placeholder for the Phase 4 claim flow | Public |
+| `/sitemap.xml` | Sitemap covering landing + gallery + every published piece's /v/[uid] (Phase 4) | Public |
+| `/robots.txt` | Robots policy; disallows /admin + /api; declares sitemap (Phase 4) | Public |
+| `/[locale]/claim/coming-soon` | Placeholder for the Phase 5 claim flow | Public |
 | `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
 
 ## Roadmap
@@ -380,19 +394,29 @@ known issues" — either fix or explicitly ask the user how to proceed.
 - Verification page hero carousel, provenance timeline, tamper page polish
 - Print stylesheet
 
-### Phase 4 — Owner claim + transfer
+### Phase 4 — Public gallery
+- `/[locale]/gallery` showcasing every published `show_in_gallery=true` piece
+- `show_in_gallery` flag on `pieces` (default true) with composite index for the gallery query
+- Admin "Show in gallery" toggle on the edit form + `Gallery: ON / Hidden` badge in the list
+- License-status chip filters (Originals / Public domain / Commissions / Licensed / Other / All)
+- Client-side debounced search by `character_name`; Esc clears
+- Infinite scroll (24 per batch) via `/[locale]/api/gallery`; static `?page=N` for crawlers
+- SEO: `sitemap.xml` (landing + gallery + every published piece in 3 locales) and `robots.txt`
+- OG/Twitter meta on `/[locale]/gallery` (hero photo of most recent piece)
+- Landing-page CTA linking to the gallery
+
+### Phase 5 — Owner claim + transfer
 - Magic-link claim flow via Resend + Supabase Auth
 - `/me` owner dashboard
 - Transfer flow (one-time tokens, recipient confirmation, revoke)
 
-### Phase 5 — Analytics + fraud detection
+### Phase 6 — Analytics + fraud detection
 - Admin analytics dashboard (counts, country heatmap, leaderboard)
 - Multi-country fraud flagging (cron)
 - Per-piece verification log view
 
 ### Later
 - Webhook from nachi3d.com to auto-create draft pieces on sale
-- Public gallery (`/gallery`)
 - Collector profiles (opt-in)
 - API for nachi3d.com to embed verified-piece badges
 
