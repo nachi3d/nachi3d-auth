@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/routing";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminPage } from "@/lib/auth/admin-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -17,41 +17,8 @@ export default async function AdminPage({ params }: AdminPageProps) {
   }
   setRequestLocale(locale);
 
+  await requireAdminPage(locale);
   const t = await getTranslations("admin");
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(`/${locale}`);
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin, display_name")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!profile?.is_admin) {
-    return (
-      <main
-        data-testid="admin-gate-denied"
-        className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-24"
-      >
-        <p className="mb-3 text-xs uppercase tracking-[0.3em] text-red-400">
-          403
-        </p>
-        <h1 className="text-3xl font-serif font-light text-white">
-          {t("notAuthorized")}
-        </h1>
-        <p className="mt-4 text-sm text-dark-text-200">
-          {t("signedInAs", { email: user.email ?? "" })}
-        </p>
-      </main>
-    );
-  }
 
   return (
     <main
@@ -72,10 +39,6 @@ export default async function AdminPage({ params }: AdminPageProps) {
           → {t("managePieces")}
         </Link>
       </nav>
-
-      <p className="mt-12 text-xs text-dark-text-200">
-        {t("signedInAs", { email: user.email ?? "" })}
-      </p>
     </main>
   );
 }

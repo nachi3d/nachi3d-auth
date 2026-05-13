@@ -154,5 +154,21 @@
     "signIn": "Sign in",
     "signOut": "Sign out",
     "loginRequired": "Please sign in to continue."
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Admin access only.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "errors": {
+      "invalid": "Invalid credentials",
+      "denied": "Access denied",
+      "validation": "Enter a valid email and password."
+    },
+    "banner": {
+      "accessDenied": "Access denied. This account does not have admin privileges."
+    }
   }
 }

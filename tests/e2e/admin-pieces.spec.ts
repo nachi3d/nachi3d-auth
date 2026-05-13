@@ -227,12 +227,17 @@ test.describe("Phase 2 — admin pieces", () => {
       expect(body.error).toBe("forbidden");
     });
 
-    test("non-admin reaching /admin/pieces is redirected away", async ({
+    test("non-admin reaching /admin/pieces is redirected to /login", async ({
       page,
     }) => {
       await page.goto("/en/admin/pieces");
-      // redirected to /admin (which renders the "not authorized" panel)
-      await expect(page.getByTestId("admin-gate-denied")).toBeVisible();
+      // Phase 5-prep: the admin gate now redirects authenticated
+      // non-admins to /login with the access_denied banner instead of
+      // rendering an in-app 403 panel.
+      await page.waitForURL(/\/en\/login\?error=access_denied$/);
+      await expect(
+        page.getByTestId("login-banner-access-denied"),
+      ).toBeVisible();
     });
   });
 
