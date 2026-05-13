@@ -51,16 +51,16 @@ const piece = {
 };
 
 const notices = {
-  en: "This card certifies the authenticity of a Nachi3D figurine. Tap the embedded NFC chip with any smartphone, or scan the QR code on the front, to view the verification page on verify.nachi3d.com.",
-  fr: "Cette carte certifie l'authenticité d'une figurine Nachi3D. Approchez la puce NFC intégrée d'un smartphone, ou scannez le QR code au recto, pour consulter la page de vérification sur verify.nachi3d.com.",
-  ar: "تشهد هذه البطاقة على أصالة قطعة Nachi3D. قرّب شريحة NFC المدمجة من أي هاتف ذكي، أو امسح رمز QR الموجود في الواجهة، لعرض صفحة التحقق على verify.nachi3d.com.",
+  en: "This card certifies the authenticity of a Nachi3D figurine. Tap the embedded NFC chip with any smartphone, or scan the QR code on the front, to view the verification page on verify.nachi3dlabs.com.",
+  fr: "Cette carte certifie l'authenticité d'une figurine Nachi3D. Approchez la puce NFC intégrée d'un smartphone, ou scannez le QR code au recto, pour consulter la page de vérification sur verify.nachi3dlabs.com.",
+  ar: "تشهد هذه البطاقة على أصالة قطعة Nachi3D. قرّب شريحة NFC المدمجة من أي هاتف ذكي، أو امسح رمز QR الموجود في الواجهة، لعرض صفحة التحقق على verify.nachi3dlabs.com.",
   supportEmail: "Questions? hello@nachi3d.com",
 };
 
 async function main() {
   const bytes = await generateCardPdf({
     piece,
-    siteUrl: "https://verify.nachi3d.com",
+    siteUrl: "https://verify.nachi3dlabs.com",
     notices,
   });
 

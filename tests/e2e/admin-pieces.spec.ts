@@ -35,6 +35,11 @@ test.describe("Phase 2 — admin pieces", () => {
     test.use({ storageState: ADMIN_STATE_PATH });
 
     test("register-then-verify roundtrip", async ({ page, browser }) => {
+      // Cold Next compilation of /admin/pieces/new + the redirected
+      // /admin/pieces/[id]/edit, plus a remote Supabase round trip, can
+      // exceed the default 30 s budget on the first run of a fresh dev
+      // server (observed POST 9 s + GET edit 4 s on cold cache).
+      test.setTimeout(60_000);
       const uid = uniqueUid("AB");
 
       await page.goto("/en/admin/pieces/new");

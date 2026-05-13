@@ -39,6 +39,16 @@ function readPieceFields(formData: FormData) {
     return typeof v === "string" ? v : null;
   };
 
+  // Checkbox marker: the form always submits `show_in_gallery_present=1`
+  // so we can tell "the user unchecked the box" from "the field is
+  // absent entirely". When the marker is present, the box state is the
+  // canonical value; otherwise (legacy callers / partial patches) leave
+  // it undefined so the zod default applies.
+  const rawShow = get("show_in_gallery");
+  const presentMarker = get("show_in_gallery_present");
+  const show_in_gallery =
+    presentMarker === "1" ? rawShow === "on" || rawShow === "true" : undefined;
+
   return {
     nfc_uid: get("nfc_uid") ?? "",
     piece_number: get("piece_number") ?? "",
@@ -52,6 +62,7 @@ function readPieceFields(formData: FormData) {
     paint_date: get("paint_date") ?? "",
     photos,
     status: get("status") ?? "draft",
+    ...(show_in_gallery === undefined ? {} : { show_in_gallery }),
   };
 }
 

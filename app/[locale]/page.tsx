@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/routing";
@@ -26,6 +27,17 @@ export default async function LandingPage({ params }: PageProps) {
       <p className="mt-6 text-lg leading-relaxed text-dark-text-100">
         {t("subtitle")}
       </p>
+
+      <div className="mt-8">
+        <Link
+          href={`/${locale}/gallery`}
+          data-testid="landing-gallery-cta"
+          className="inline-flex items-center gap-2 rounded-sm border border-primary-500/50 px-5 py-2.5 text-sm text-primary-400 transition hover:border-primary-500 hover:bg-primary-500/10"
+        >
+          {t("viewGallery")}
+          <span aria-hidden>→</span>
+        </Link>
+      </div>
 
       <section className="mt-16 border-t border-dark-700 pt-10">
         <h2 className="mb-6 text-xs uppercase tracking-[0.25em] text-dark-text-200">

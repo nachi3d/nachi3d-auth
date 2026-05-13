@@ -85,6 +85,7 @@ export async function createPiece(rawInput: unknown): Promise<PieceRow> {
       photos: input.photos,
       current_owner_id: null,
       status: input.status,
+      show_in_gallery: input.show_in_gallery,
     })
     .select("*")
     .single();

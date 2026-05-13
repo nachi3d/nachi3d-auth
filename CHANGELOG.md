@@ -4,6 +4,64 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-05-13
+
+Phase 4 — public gallery. Every published `show_in_gallery=true` piece
+now has a public face at `/[locale]/gallery`, the surface meant to
+drive discovery and SEO and act as marketing proof for the
+certification system.
+
+### ✨ Features
+
+- **Public gallery at `/[locale]/gallery`.** Trilingual grid of every
+  published piece, sorted `piece_number desc`. License-status chip
+  filters (Originaux / Public domain / Commissions / Sous licence /
+  Autre / Tout) refetch server-side; debounced client-side search on
+  `character_name` filters already-loaded cards (Esc to clear).
+  Infinite scroll batches of 24 via `/[locale]/api/gallery`.
+- **`show_in_gallery` toggle on the admin piece form.** Checkbox on
+  `/admin/pieces/[id]/edit` (default true) hides a piece from the
+  public gallery while keeping `/v/[uid]` fully functional —
+  decouples the showcase surface from the verification surface. The
+  `/admin/pieces` list grew a `Gallery: ON / Hidden` chip next to the
+  status badge.
+- **SEO surface.** Dynamic `/sitemap.xml` covers the landing page,
+  the gallery, and every published piece's `/v/[uid]?t=<token>` in
+  all three locales — tokens are signed server-side at render time.
+  `/robots.txt` allows all crawlers, disallows `/admin` + `/api`, and
+  declares the sitemap.
+- **Stats bar on the gallery.** Header strip surfaces the count of
+  authenticated pieces and how many have been claimed.
+- **Landing-page CTA to the gallery.** Secondary call-to-action on
+  `/[locale]` points new visitors at `/gallery`.
+
+### 🔧 Internal
+
+- **Schema.** New migration `20260512000000_add_show_in_gallery.sql`
+  adds a `show_in_gallery boolean not null default true` column on
+  `pieces`, backfills existing rows, and creates a composite index on
+  `(status, show_in_gallery, piece_number DESC)` covering the gallery
+  query path in one go.
+- **`npm run purge:cards`.** New maintenance utility wipes every
+  cached certificate-card PDF in the `cards` storage bucket. Use it
+  after a shared content change to the card (verification domain,
+  copy, layout, fonts), since `invalidateCardCache()` only fires on
+  per-piece updates. Same project-ref defensive interlock as
+  `db:seed`.
+- **Fix `uidLocked` propagation in `PieceForm`.** When a piece is
+  published, the `nfc_uid` input is disabled — which excluded it
+  from `FormData`, so `piecePatchSchema` saw `nfc_uid=""` and
+  rejected the patch before reaching the DB. The locked input is now
+  renamed (`nfc_uid__locked_display`) and the real value ships via a
+  sibling hidden input. Surfaced by the new admin gallery-toggle
+  test, which exercises a toggle-only edit on a published piece.
+- **E2E timeouts adjusted for remote Supabase latency.** The default
+  5 s assertion budget races with server-action round trips against
+  the remote project (revalidatePath + DB write routinely 5+ s on
+  cold-compiled routes). Specific assertions in `gallery.spec.ts`
+  bumped to 15 s; `admin-pieces.spec.ts:37` (register-then-verify
+  roundtrip) bumped to 60 s for the cold-compile path.
+
 ## [0.3.0] — 2026-05-11
 
 Phase 3.5 — brand palette rollout across every surface, drag-and-drop
