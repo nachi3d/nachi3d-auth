@@ -154,5 +154,21 @@
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
     "loginRequired": "Veuillez vous connecter pour continuer."
+  },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Accès réservé aux administrateurs.",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Se connecter",
+    "submitting": "Connexion…",
+    "errors": {
+      "invalid": "Email ou mot de passe incorrect",
+      "denied": "Accès refusé",
+      "validation": "Saisissez un email et un mot de passe valides."
+    },
+    "banner": {
+      "accessDenied": "Accès refusé. Ce compte n'a pas les privilèges d'administrateur."
+    }
   }
 }

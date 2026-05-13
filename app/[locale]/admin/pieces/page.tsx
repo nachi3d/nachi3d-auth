@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { isLocale } from "@/i18n/routing";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminPage } from "@/lib/auth/admin-guard";
 import { listPieces } from "@/lib/server/pieces";
 
 export const dynamic = "force-dynamic";
@@ -24,19 +24,8 @@ export default async function AdminPiecesListPage({
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
 
+  await requireAdminPage(locale);
   const t = await getTranslations("admin.pieces");
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect(`/${locale}`);
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!profile?.is_admin) redirect(`/${locale}/admin`);
 
   const sp = await searchParams;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
