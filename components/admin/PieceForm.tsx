@@ -31,6 +31,8 @@ export interface PieceFormLabels {
   publish: string;
   saved: string;
   uidLockedHint: string;
+  show_in_gallery: string;
+  showInGalleryHint: string;
   licenseOptions: Record<(typeof LICENSE_STATUSES)[number], string>;
   photoLabels: {
     addPhotos: string;
@@ -64,6 +66,7 @@ interface PieceFormProps {
     paint_date?: string;
     photos?: string[];
     status?: (typeof PIECE_STATUSES)[number];
+    show_in_gallery?: boolean;
   };
   defaultPieceNumber: number;
   labels: PieceFormLabels;
@@ -158,7 +161,11 @@ export function PieceForm({
       <fieldset className="grid gap-6 md:grid-cols-2">
         <Field
           label={labels.nfc_uid}
-          name="nfc_uid"
+          // Disabled inputs aren't included in FormData, so when the
+          // UID is locked we rename the visible input and ship the value
+          // through a sibling hidden input — otherwise piecePatchSchema
+          // sees nfc_uid="" and fails before the save reaches the DB.
+          name={uidLocked ? "nfc_uid__locked_display" : "nfc_uid"}
           defaultValue={initial.nfc_uid ?? ""}
           required
           disabled={uidLocked}
@@ -167,6 +174,9 @@ export function PieceForm({
           testid="field-nfc_uid"
           autoCapitalize="characters"
         />
+        {uidLocked ? (
+          <input type="hidden" name="nfc_uid" value={initial.nfc_uid ?? ""} />
+        ) : null}
         <Field
           label={labels.piece_number}
           name="piece_number"
@@ -268,6 +278,31 @@ export function PieceForm({
           errors={fieldErrors.paint_date}
           testid="field-paint_date"
         />
+      </fieldset>
+
+      <fieldset className="grid gap-3">
+        <label className="flex items-start gap-3 rounded-sm border border-dark-700 bg-dark-800/40 px-4 py-3">
+          <input
+            type="hidden"
+            name="show_in_gallery_present"
+            value="1"
+          />
+          <input
+            type="checkbox"
+            name="show_in_gallery"
+            defaultChecked={initial.show_in_gallery ?? true}
+            data-testid="field-show_in_gallery"
+            className="mt-1 h-4 w-4 accent-primary-500"
+          />
+          <span className="text-sm">
+            <span className="block text-dark-text-100">
+              {labels.show_in_gallery}
+            </span>
+            <span className="mt-1 block text-xs text-dark-text-200">
+              {labels.showInGalleryHint}
+            </span>
+          </span>
+        </label>
       </fieldset>
 
       <section>

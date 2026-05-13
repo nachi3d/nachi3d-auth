@@ -10,7 +10,36 @@
     "step1": "Approchez votre téléphone de la puce intégrée à la base de la figurine, ou scannez le QR du certificat.",
     "step2": "Vous arriverez sur ce site, sur une page propre à cette pièce.",
     "step3": "Si la page affiche le numéro, les photos et la provenance, la pièce est authentique.",
-    "learnMore": "En savoir plus sur nachi3d.com"
+    "learnMore": "En savoir plus sur nachi3d.com",
+    "viewGallery": "Voir la galerie"
+  },
+  "gallery": {
+    "title": "Galerie",
+    "trilingualTitle": "Galerie · Gallery · المعرض",
+    "subtitle": "Toutes les pièces Nachi3D authentifiées, au même endroit.",
+    "stats": {
+      "authenticated": "{count, plural, one {# œuvre authentifiée} other {# œuvres authentifiées}}",
+      "claimed": "{count, plural, one {# revendiquée} other {# revendiquées}}"
+    },
+    "filters": {
+      "label": "Filtrer par licence",
+      "all": "Tout",
+      "original": "Originaux",
+      "public_domain": "Domaine public",
+      "commission": "Commandes",
+      "licensed": "Sous licence",
+      "other": "Autre"
+    },
+    "search": {
+      "placeholder": "Rechercher un personnage…",
+      "clearHint": "Appuyez sur Échap pour effacer"
+    },
+    "empty": "Galerie en préparation. Revenez bientôt.",
+    "emptyFiltered": "Aucune pièce ne correspond à ce filtre.",
+    "loadMore": "Charger plus",
+    "card": {
+      "piece": "Pièce #{number}"
+    }
   },
   "verify": {
     "pieceNumber": "Pièce",
@@ -64,6 +93,8 @@
       "editTitle": "Modifier la pièce #{number}",
       "createdBanner": "Pièce créée. Ajoutez des photos puis publiez lorsque vous serez prêt.",
       "empty": "Aucune pièce pour le moment. Cliquez sur « Nouvelle pièce » pour enregistrer la première.",
+      "galleryOn": "Galerie : ON",
+      "galleryHidden": "Masquée",
       "prev": "Précédent",
       "next": "Suivant",
       "pageOf": "Page {page} sur {total}",
@@ -88,7 +119,9 @@
         "saveDraft": "Enregistrer en brouillon",
         "publish": "Publier",
         "saved": "Enregistré.",
-        "uidLockedHint": "L'UID NFC est verrouillé dès qu'une pièce est publiée."
+        "uidLockedHint": "L'UID NFC est verrouillé dès qu'une pièce est publiée.",
+        "show_in_gallery": "Afficher dans la galerie publique",
+        "showInGalleryHint": "Décochez pour masquer cette pièce de /gallery tout en gardant /v/[uid] accessible."
       },
       "license": {
         "original": "Œuvre originale",

@@ -29,6 +29,7 @@ export type PieceRow = {
   photos: string[];
   current_owner_id: string | null;
   status: PieceStatus;
+  show_in_gallery: boolean;
   created_at: string;
   updated_at: string;
 };

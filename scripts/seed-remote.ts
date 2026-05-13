@@ -32,6 +32,18 @@ export const SEED_COLLECTOR_ID = "00000000-0000-0000-0000-000000000020";
 export const SEED_PIECE_ID = "00000000-0000-0000-0000-000000000001";
 export const SEED_NFC_UID = "04A1B2C3D4E580";
 
+// Phase 4 gallery fixture: a published piece that is intentionally
+// hidden from the gallery (show_in_gallery=false) so the e2e suite
+// can assert it appears on /v/[uid] but never in /gallery.
+export const SEED_HIDDEN_PIECE_ID = "00000000-0000-0000-0000-000000000002";
+export const SEED_HIDDEN_NFC_UID = "04B1C2D3E4F580";
+
+// Phase 4 gallery fixture: a published piece with a non-original
+// license, used to assert the license-status filter on /gallery.
+export const SEED_LICENSED_PIECE_ID =
+  "00000000-0000-0000-0000-000000000003";
+export const SEED_LICENSED_NFC_UID = "04C1D2E3F4A580";
+
 const SEED_USERS = [
   {
     id: SEED_ADMIN_ID,
@@ -98,13 +110,18 @@ export async function seedRemote(): Promise<void> {
   // Playwright suite (admin-pieces.spec.ts → register-then-verify) creates
   // pieces with high piece_numbers and random NFC UIDs that pile up across
   // runs and eventually collide on the unique constraints. Anything other
-  // than the canonical SEED_PIECE_ID is fair game on the test database.
+  // than the canonical seed piece IDs is fair game on the test database.
   // verification_logs and provenance_events for those pieces cascade-delete
   // via the FK on_delete=cascade in the schema.
+  const SEED_PIECE_IDS = [
+    SEED_PIECE_ID,
+    SEED_HIDDEN_PIECE_ID,
+    SEED_LICENSED_PIECE_ID,
+  ];
   const { error: pruneErr } = await sb
     .from("pieces")
     .delete()
-    .neq("id", SEED_PIECE_ID);
+    .not("id", "in", `(${SEED_PIECE_IDS.map((id) => `"${id}"`).join(",")})`);
   if (pruneErr) {
     throw new Error(
       `seed-remote: failed to prune non-seed pieces: ${pruneErr.message}`,
@@ -157,30 +174,77 @@ export async function seedRemote(): Promise<void> {
     }
   }
 
-  const verificationToken = signToken(SEED_NFC_UID, SEED_PIECE_ID);
-
-  const { error: pieceErr } = await sb.from("pieces").upsert(
+  const seededPieces = [
     {
       id: SEED_PIECE_ID,
       piece_number: 1,
       edition_number: 1,
       edition_total: 10,
       nfc_uid: SEED_NFC_UID,
-      verification_token: verificationToken,
       character_name: "Test Subject",
       character_quote: "Authenticity is what you carry, not what you claim.",
-      license_status: "original",
-      license_notes: null,
-      sculpt_date: "2026-04-01",
-      paint_date: "2026-04-15",
-      photos: [],
-      current_owner_id: null,
-      status: "published",
+      license_status: "original" as const,
+      license_notes: null as string | null,
+      show_in_gallery: true,
     },
-    { onConflict: "id" },
-  );
-  if (pieceErr) {
-    throw new Error(`seed-remote: failed to upsert piece: ${pieceErr.message}`);
+    // Gallery-hidden but still published — exercises the /gallery
+    // filter without breaking /v/[uid].
+    {
+      id: SEED_HIDDEN_PIECE_ID,
+      piece_number: 2,
+      edition_number: 1,
+      edition_total: 1,
+      nfc_uid: SEED_HIDDEN_NFC_UID,
+      character_name: "Hidden Subject",
+      character_quote: null,
+      license_status: "original" as const,
+      license_notes: null as string | null,
+      show_in_gallery: false,
+    },
+    // Different license_status so the gallery license-filter test has
+    // something to assert against.
+    {
+      id: SEED_LICENSED_PIECE_ID,
+      piece_number: 3,
+      edition_number: 1,
+      edition_total: 5,
+      nfc_uid: SEED_LICENSED_NFC_UID,
+      character_name: "Licensed Subject",
+      character_quote: null,
+      license_status: "licensed" as const,
+      license_notes: "Licensed for the test fixture.",
+      show_in_gallery: true,
+    },
+  ];
+
+  for (const p of seededPieces) {
+    const verificationToken = signToken(p.nfc_uid, p.id);
+    const { error: pieceErr } = await sb.from("pieces").upsert(
+      {
+        id: p.id,
+        piece_number: p.piece_number,
+        edition_number: p.edition_number,
+        edition_total: p.edition_total,
+        nfc_uid: p.nfc_uid,
+        verification_token: verificationToken,
+        character_name: p.character_name,
+        character_quote: p.character_quote,
+        license_status: p.license_status,
+        license_notes: p.license_notes,
+        sculpt_date: "2026-04-01",
+        paint_date: "2026-04-15",
+        photos: [],
+        current_owner_id: null,
+        status: "published",
+        show_in_gallery: p.show_in_gallery,
+      },
+      { onConflict: "id" },
+    );
+    if (pieceErr) {
+      throw new Error(
+        `seed-remote: failed to upsert piece ${p.id}: ${pieceErr.message}`,
+      );
+    }
   }
 
   // provenance_events has no natural unique key for "created" — only

@@ -70,6 +70,8 @@ const baseFields = {
   photos: z.array(photoUrlSchema).max(20, "Up to 20 photos per piece"),
 
   status: z.enum(PIECE_STATUSES),
+
+  show_in_gallery: z.boolean().default(true),
 };
 
 const editionPairCheck = (data: {
@@ -140,6 +142,7 @@ export const piecePatchSchema = z
     paint_date: baseFields.paint_date.optional(),
     photos: baseFields.photos.optional(),
     status: baseFields.status.optional(),
+    show_in_gallery: baseFields.show_in_gallery.optional(),
   })
   .refine(
     (data) =>
