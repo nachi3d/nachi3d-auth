@@ -388,6 +388,87 @@ known issues" — either fix or explicitly ask the user how to proceed.
 | `/[locale]/claim/coming-soon` | Placeholder for the Phase 5 claim flow | Public |
 | `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
 
+## Security operations
+
+### HMAC secret rotation
+
+When to rotate:
+
+- On suspected compromise (env vars leaked, secret transited an
+  insecure channel, accidentally pasted into chat / logs / a ticket)
+- On scheduled annual policy
+- When an admin/operator with knowledge of the secret leaves
+
+**Procedure (4 steps):**
+
+1. **Generate a new secret.** 32 random bytes, hex-encoded:
+
+   ```bash
+   openssl rand -hex 32
+   # or, equivalently:
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+2. **Update `HMAC_SECRET` in two places, in this order:**
+
+   - **Vercel Dashboard** → Project → Settings → Environment Variables →
+     `HMAC_SECRET` → edit → save. Apply to **Production + Preview +
+     Development** so every environment uses the same value.
+   - **`.env.local`** in your local checkout, so the Node scripts and
+     `npm run dev` pick up the new secret.
+   - **Do NOT touch Supabase `app.hmac_secret`.** The Postgres GUC is no
+     longer used. `compute_piece_verification_token()` is deprecated;
+     all token computation happens in Node via `lib/hmac.ts`. Hosted
+     Supabase projects also reject `alter database postgres set ...`
+     with permission denied (42501), so even attempting it fails.
+
+3. **Run the rotation script:**
+
+   ```bash
+   npm run rotate-tokens -- --yes
+   ```
+
+   This recomputes `verification_token` for every row in `pieces` via
+   `signToken(nfc_uid, piece_id)` under the new secret. Idempotent
+   (deterministic) — re-running with the same secret writes the same
+   value. Output lists each piece's `piece_number` + old/new token
+   prefix transitions, plus a final post-check asserting zero
+   `NULL`/empty tokens remain.
+
+4. **Trigger a Vercel redeploy** so the running production process
+   picks up the new env var. Push any commit to `dev` (and merge to
+   `main` if it should ship), or use Vercel Dashboard → Deployments →
+   `...` → "Redeploy" on the current production deployment.
+
+**Impact:**
+
+- All currently-programmed NFC chips in the field become invalid until
+  their URL is re-written by the operator.
+- Each chip's URL must be re-fetched from the admin panel (the new HMAC
+  produces a different `?t=` token) and re-written via NFC Tools.
+- If a chip in a customer's hands isn't re-written, scanning it will
+  show the tamper page (correct, fail-closed behavior).
+- Use the admin's `/[locale]/admin/pieces/[id]/edit` "Programmer la
+  puce NFC" callout to read the current valid URL for re-writing.
+
+**Validation after rotation:**
+
+- Open any piece's verification URL from the admin "Write to NFC chip"
+  callout → must show the verification page normally.
+- Modify one character of the `?t=` token in the URL → must show the
+  tamper page.
+- Both behaviors together confirm the new secret is active end-to-end.
+
+**Out of scope (intentionally):**
+
+- Bulk re-write of physical NFC chips — manual operator task with NFC
+  Tools and the admin "Write to NFC chip" callout.
+- HMAC version bump / multi-secret support for graceful rotation — over-
+  engineering for current scale. A rotation is a deliberate revocation
+  event; the abrupt invalidation is the feature.
+- Automated rotation schedule / reminders — the calendar lives outside
+  this repo.
+
 ## Roadmap
 
 ### Phase 1 — Foundation
