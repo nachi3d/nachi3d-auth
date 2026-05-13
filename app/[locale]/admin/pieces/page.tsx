@@ -4,6 +4,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { isLocale } from "@/i18n/routing";
 import { requireAdminPage } from "@/lib/auth/admin-guard";
 import { listPieces } from "@/lib/server/pieces";
+import { DeletedBanner } from "@/components/admin/DeletedBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ type StatusFilter = (typeof STATUS_OPTIONS)[number];
 
 interface PageProps {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ page?: string; status?: string }>;
+  searchParams: Promise<{ page?: string; status?: string; deleted?: string }>;
 }
 
 export default async function AdminPiecesListPage({
@@ -46,6 +47,7 @@ export default async function AdminPiecesListPage({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12" data-testid="admin-pieces-list">
+      <DeletedBanner />
       <header className="mb-10 flex flex-wrap items-baseline justify-between gap-4">
         <div>
           <p className="mb-2 text-xs uppercase tracking-[0.3em] text-primary-400">

@@ -334,6 +334,12 @@ Before merging any branch, verify all of these still work:
 | Robots policy | `GET /robots.txt` | Returns 200 with `Sitemap:` declaration; disallows `/admin` + `/api` |
 | Gallery OG meta | `/[locale]/gallery` HTML | `og:title`, `og:description`, `og:type=website`, hero `og:image` when any published piece has a photo |
 | Admin `show_in_gallery` toggle | `/admin/pieces/[id]/edit` save | Server stores the toggle state; gallery query reflects the new value on next request |
+| Hard delete — UI gate | `/admin/pieces/[id]/edit` danger zone | Modal opens; confirm button disabled until typed `piece_number` matches (leading zeros forgiven); cancel closes without deletion |
+| Hard delete — server confirmation | `deletePieceAction` with mismatched `confirm_piece_number` | Returns `confirmation_mismatch`; row untouched |
+| Hard delete — cascade | Confirmed delete of a draft piece | `pieces` row gone; `provenance_events` + `verification_logs` cascade-deleted via FK; cached PDF + `<id>/` photo folder cleared from storage |
+| Hard delete — verification URL no longer works | `/v/<uid>?t=<token>` after the piece is deleted | No piece data is leaked (404 / unknown UID panel) |
+| Hard delete — admin-only | `DELETE /api/admin/pieces/[id]` as `is_admin=false` | 403 `forbidden`; row untouched |
+| Hard delete — anonymous | `DELETE /api/admin/pieces/[id]` with no session | 401 `unauthenticated`; row untouched |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -367,12 +373,13 @@ known issues" — either fix or explicitly ask the user how to proceed.
 | `/[locale]/admin` | Admin home | Admin only |
 | `/[locale]/admin/pieces` | Paginated list with status filter + gallery badge (Phase 2 + 4) | Admin only |
 | `/[locale]/admin/pieces/new` | Register piece (Phase 2) | Admin only |
-| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout + gallery toggle (Phase 2 + 4) | Admin only |
+| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout + gallery toggle + danger zone hard-delete (Phase 2 + 4 + 5-prep) | Admin only |
 | `/[locale]/admin/analytics` | Analytics (Phase 6) | Admin only |
 | `/[locale]/admin/flags` | Fraud flags (Phase 6) | Admin only |
 | `/[locale]/api/gallery` | Gallery pagination JSON (Phase 4) | Public |
 | `POST /api/admin/pieces` | JSON insert; mirrors the form server action (Phase 2) | Admin only |
 | `GET/PATCH /api/admin/pieces/[id]` | JSON fetch/update; locked-uid enforced (Phase 2) | Admin only |
+| `DELETE /api/admin/pieces/[id]` | Hard-delete a piece + cascading cleanup (Phase 5-prep) | Admin only |
 | `POST /api/admin/photos` | multipart upload to `piece-photos` bucket (Phase 2) | Admin only |
 | `DELETE /api/admin/photos` | Remove a photo from a piece + bucket (Phase 2) | Admin only |
 | `GET /api/admin/cards/[id]` | A6 PDF certificate, cached in `cards` bucket (Phase 3) | Admin only |
@@ -422,6 +429,15 @@ known issues" — either fix or explicitly ask the user how to proceed.
 - Test fixtures use distinctive `test-*-do-not-use` passwords; production
   admins are created via the Supabase dashboard
 - `/api/test/signin` remains gated by `E2E_TEST_LOGIN_ENABLED` (off in prod)
+
+### Phase 5-prep — Hard-delete piece
+- Danger zone on `/admin/pieces/[id]/edit` with typed-confirmation modal
+- `deletePiece()` clears the cached PDF, the photos folder, then the
+  `pieces` row (FK CASCADE drops `provenance_events` + `verification_logs`)
+- `DELETE /api/admin/pieces/[id]` for programmatic + test access
+- Intended for cleaning test fixtures and operator-driven removals.
+  Owner-requested removals stay on `status='archived'` (see Hard-delete
+  policy below)
 
 ### Phase 5 — Owner claim + transfer
 - Magic-link claim flow via Resend + Supabase Auth
@@ -475,6 +491,32 @@ client-side token storage.
   and Playwright global setup. Gated by `E2E_TEST_LOGIN_ENABLED=1` —
   the route returns 404 when the flag is unset. This flag is NOT set in
   the production Vercel environment.
+
+## Hard-delete policy
+
+The danger zone on `/admin/pieces/[id]/edit` performs an **irreversible**
+hard delete: the row in `public.pieces`, both child tables
+(`provenance_events`, `verification_logs`) via FK CASCADE, the cached
+PDF in the `cards` bucket, and every object under the `<id>/` prefix in
+`piece-photos`. There is no trash bin and no undo. The operator is
+solely accountable.
+
+**Use hard delete for:**
+- Cleaning up test fixtures (placeholder UIDs, bad data, scratch pieces)
+- Operator-driven removal of a piece that should never have been
+  recorded (entered against the wrong figurine, duplicate, etc.)
+
+**Do NOT use hard delete for owner-requested removals.** Use
+`status='archived'` instead — it hides the piece from the list and the
+gallery while preserving the provenance trail, the verification log,
+and the original certificate. We may need that history for legal or
+authenticity-dispute reasons later, and once a hard delete fires
+nothing in the database remembers the piece existed.
+
+If an NFC chip has been programmed for a piece, deleting the piece
+makes that chip unverifiable forever (the new `verification_token` for
+any future piece will not match). Reuse the chip by registering a new
+piece with the same `nfc_uid` only after the original has been deleted.
 
 ## Supabase Notes
 
