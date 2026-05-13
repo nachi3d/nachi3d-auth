@@ -10,7 +10,36 @@
     "step1": "Tap your phone to the chip embedded in the figurine's base, or scan the QR on the certificate card.",
     "step2": "You'll land on this site, on a page unique to that piece.",
     "step3": "If the page shows the piece's number, photos, and provenance, it's authentic.",
-    "learnMore": "Learn more at nachi3d.com"
+    "learnMore": "Learn more at nachi3d.com",
+    "viewGallery": "View the gallery"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "trilingualTitle": "Galerie · Gallery · المعرض",
+    "subtitle": "Every authenticated Nachi3D piece, in one place.",
+    "stats": {
+      "authenticated": "{count, plural, one {# piece authenticated} other {# pieces authenticated}}",
+      "claimed": "{count, plural, one {# claimed} other {# claimed}}"
+    },
+    "filters": {
+      "label": "Filter by license",
+      "all": "All",
+      "original": "Originals",
+      "public_domain": "Public domain",
+      "commission": "Commissions",
+      "licensed": "Licensed",
+      "other": "Other"
+    },
+    "search": {
+      "placeholder": "Search by character…",
+      "clearHint": "Press Esc to clear"
+    },
+    "empty": "Gallery in preparation. Check back soon.",
+    "emptyFiltered": "No pieces match this filter.",
+    "loadMore": "Load more",
+    "card": {
+      "piece": "Piece #{number}"
+    }
   },
   "verify": {
     "pieceNumber": "Piece",

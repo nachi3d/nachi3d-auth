@@ -10,7 +10,36 @@
     "step1": "قرّب هاتفك من الشريحة المدمجة في قاعدة القطعة، أو امسح رمز QR على بطاقة الشهادة.",
     "step2": "ستصل إلى هذا الموقع على صفحة خاصة بهذه القطعة.",
     "step3": "إذا ظهر رقم القطعة وصورها وسجلّها، فهي قطعة أصلية.",
-    "learnMore": "لمعرفة المزيد، تفضّل بزيارة nachi3d.com"
+    "learnMore": "لمعرفة المزيد، تفضّل بزيارة nachi3d.com",
+    "viewGallery": "عرض المعرض"
+  },
+  "gallery": {
+    "title": "المعرض",
+    "trilingualTitle": "Galerie · Gallery · المعرض",
+    "subtitle": "كل قطع Nachi3D الموثّقة في مكان واحد.",
+    "stats": {
+      "authenticated": "{count, plural, one {# قطعة موثّقة} other {# قطعة موثّقة}}",
+      "claimed": "{count, plural, one {# مُستلَمة} other {# مُستلَمة}}"
+    },
+    "filters": {
+      "label": "تصفية حسب الترخيص",
+      "all": "الكل",
+      "original": "أصلية",
+      "public_domain": "ملكية عامة",
+      "commission": "طلبات خاصة",
+      "licensed": "مُرخَّصة",
+      "other": "أخرى"
+    },
+    "search": {
+      "placeholder": "ابحث باسم الشخصية…",
+      "clearHint": "اضغط Esc للمسح"
+    },
+    "empty": "المعرض قيد التحضير. عُد قريبًا.",
+    "emptyFiltered": "لا توجد قطع مطابقة لهذا التصفية.",
+    "loadMore": "تحميل المزيد",
+    "card": {
+      "piece": "القطعة #{number}"
+    }
   },
   "verify": {
     "pieceNumber": "القطعة",
