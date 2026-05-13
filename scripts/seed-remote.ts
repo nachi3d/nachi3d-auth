@@ -44,22 +44,30 @@ export const SEED_LICENSED_PIECE_ID =
   "00000000-0000-0000-0000-000000000003";
 export const SEED_LICENSED_NFC_UID = "04C1D2E3F4A580";
 
+// Distinctive test-only passwords. The "do-not-use" suffix makes it
+// obvious to anyone scanning this file (or grepping the repo) that
+// these credentials are fixtures, never production secrets. Production
+// admins are created via the Supabase dashboard with operator-chosen
+// passwords; these values must NOT appear in the production project.
+export const SEED_ADMIN_PASSWORD = "test-admin-password-do-not-use";
+export const SEED_COLLECTOR_PASSWORD = "test-collector-password-do-not-use";
+
 const SEED_USERS = [
   {
     id: SEED_ADMIN_ID,
     email: "admin@nachi3d.test",
+    password: SEED_ADMIN_PASSWORD,
     display_name: "Test Admin",
     is_admin: true,
   },
   {
     id: SEED_COLLECTOR_ID,
     email: "collector@nachi3d.test",
+    password: SEED_COLLECTOR_PASSWORD,
     display_name: "Test Collector",
     is_admin: false,
   },
 ] as const;
-
-const SEED_PASSWORD = "nachi3d-test-password";
 
 function decodeJwtRef(jwt: string): string | null {
   try {
@@ -133,7 +141,7 @@ export async function seedRemote(): Promise<void> {
     if (existing?.user) {
       // Reset the password to the canonical test value in case it drifted.
       const { error: updateErr } = await sb.auth.admin.updateUserById(user.id, {
-        password: SEED_PASSWORD,
+        password: user.password,
         email_confirm: true,
       });
       if (updateErr) {
@@ -145,7 +153,7 @@ export async function seedRemote(): Promise<void> {
       const { error: createErr } = await sb.auth.admin.createUser({
         id: user.id,
         email: user.email,
-        password: SEED_PASSWORD,
+        password: user.password,
         email_confirm: true,
       });
       if (createErr) {

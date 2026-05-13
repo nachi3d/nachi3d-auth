@@ -25,11 +25,33 @@ loadEnv({ path: ".env.local", quiet: true });
 loadEnv({ path: ".env", quiet: true });
 
 import { chromium } from "@playwright/test";
+import {
+  SEED_ADMIN_PASSWORD,
+  SEED_COLLECTOR_PASSWORD,
+} from "./seed-remote";
 
 const DEV_BASE_URL = "http://localhost:3000";
-const SEED_PASSWORD = "nachi3d-test-password";
 const DEFAULT_EMAIL = "admin@nachi3d.test";
 const DEFAULT_PATH = "/fr/admin";
+
+// Map known seed accounts to their fixture passwords. Anything else has
+// to be supplied via SEED_PASSWORD on the env (no production credentials
+// in this file).
+const SEED_PASSWORD_BY_EMAIL: Record<string, string> = {
+  "admin@nachi3d.test": SEED_ADMIN_PASSWORD,
+  "collector@nachi3d.test": SEED_COLLECTOR_PASSWORD,
+};
+
+function passwordFor(email: string): string {
+  const known = SEED_PASSWORD_BY_EMAIL[email];
+  if (known) return known;
+  const fromEnv = process.env.SEED_PASSWORD;
+  if (fromEnv) return fromEnv;
+  throw new Error(
+    `dev-signin: no fixture password is registered for ${email}. ` +
+      "Set SEED_PASSWORD in the environment to override.",
+  );
+}
 
 interface CliArgs {
   email: string;
@@ -129,7 +151,7 @@ async function main(): Promise<void> {
   // the browser context's cookie jar — the headed page will then send the
   // Supabase session on its first navigation.
   const signin = await context.request.post("/api/test/signin", {
-    data: { email, password: SEED_PASSWORD },
+    data: { email, password: passwordFor(email) },
   });
   if (!signin.ok()) {
     const body = await signin.text();

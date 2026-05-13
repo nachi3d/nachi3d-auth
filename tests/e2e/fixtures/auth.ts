@@ -1,6 +1,10 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { request as pwRequest } from "@playwright/test";
+import {
+  SEED_ADMIN_PASSWORD,
+  SEED_COLLECTOR_PASSWORD,
+} from "../../../scripts/seed-remote";
 
 export interface SeedUser {
   email: string;
@@ -9,12 +13,12 @@ export interface SeedUser {
 
 export const SEED_ADMIN: SeedUser = {
   email: "admin@nachi3d.test",
-  password: "nachi3d-test-password",
+  password: SEED_ADMIN_PASSWORD,
 };
 
 export const SEED_COLLECTOR: SeedUser = {
   email: "collector@nachi3d.test",
-  password: "nachi3d-test-password",
+  password: SEED_COLLECTOR_PASSWORD,
 };
 
 export const STORAGE_STATE_DIR = path.join(
