@@ -113,11 +113,14 @@ update public.profiles
 
 -- ---------------------------------------------------------------------------
 -- One published piece used by Phase 1 verification specs.
--- verification_token is computed via public.compute_piece_verification_token,
--- which reads app.hmac_secret and uses pgcrypto to mirror lib/hmac.ts. If the
--- GUC is unset, the result is computed with an empty key — the runtime never
--- trusts the stored value (it always recomputes), so this is harmless for
--- tests, which sign their own tokens via the JS helper.
+--
+-- This file is reference-only — the active seeder is scripts/seed-remote.ts
+-- (npm run db:seed), which computes verification_token in Node via
+-- lib/hmac.ts signToken(). The placeholder below intentionally does NOT
+-- call public.compute_piece_verification_token() (deprecated; see
+-- supabase/migrations/20260503000002_verification_token_function.sql).
+-- The runtime never trusts the stored value — it always recomputes — so
+-- a placeholder here is harmless even if this file were ever applied.
 -- ---------------------------------------------------------------------------
 
 insert into public.pieces (
@@ -130,10 +133,7 @@ insert into public.pieces (
   '00000000-0000-0000-0000-000000000001',
   1, 1, 10,
   '04A1B2C3D4E580',
-  public.compute_piece_verification_token(
-    '04A1B2C3D4E580',
-    '00000000-0000-0000-0000-000000000001'::uuid
-  ),
+  'placeholder-recomputed-at-runtime',
   'Test Subject',
   'Authenticity is what you carry, not what you claim.',
   'original',
