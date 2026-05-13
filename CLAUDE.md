@@ -199,8 +199,11 @@ chore(db): add migration for verification_logs index
 - **Database** — Supabase Postgres. All schema changes go through
   versioned migrations in `supabase/migrations/`. Never edit the
   remote schema by hand.
-- **Auth** — Supabase Auth via `@supabase/ssr`. Magic links only (no
-  password flow). Admin gate via `profiles.is_admin` flag.
+- **Auth** — Supabase Auth via `@supabase/ssr` (cookie-based sessions).
+  Admin sign-in is email + password against `/[locale]/login`; magic-link
+  flow ships in Phase 5 for the public claim/transfer surface. Admin
+  access is gated by `profiles.is_admin`. See "Admin auth (Phase 5-prep)"
+  below for operational notes.
 - **Storage** — Supabase Storage bucket `piece-photos` for figurine
   images. Public read, admin-only write.
 - **HMAC** — `HMAC-SHA256(HMAC_SECRET, "<nfc_uid>:<piece_id>")`
@@ -296,8 +299,13 @@ Before merging any branch, verify all of these still work:
 | Verification log entry | Any tap on `/v/<uid>` | Row inserted in `verification_logs` |
 | RLS on `pieces` | Anonymous read of `status='draft'` piece | Returns null/empty |
 | RLS on `verification_logs` | Anonymous SELECT via REST | Returns 401/empty |
-| Admin gate | `/admin` while not logged in | Redirects to login |
-| Admin gate | `/admin` while logged in but `is_admin=false` | 403 page |
+| Admin gate | `/admin` while not logged in | Server-side redirect to `/[locale]/login` |
+| Admin gate | `/admin` while logged in but `is_admin=false` | Redirect to `/[locale]/login?error=access_denied` (banner shown) |
+| Admin login | Valid admin credentials on `/[locale]/login` | Redirect to `/[locale]/admin` after `signInWithPassword` |
+| Admin login | Valid non-admin credentials | Server signs user out + redirects to `/[locale]/login?error=access_denied` |
+| Admin login | Bad credentials | Generic "invalid credentials" error (no user-enumeration leak) |
+| Admin logout | Click logout in admin top-bar | Server-side signOut + redirect to `/[locale]/login`; session cookies cleared |
+| Already-authenticated admin on `/login` | GET `/[locale]/login` while signed in as admin | Redirect to `/[locale]/admin` |
 | Locale routing | `/fr/v/<uid>?t=<token>` | French strings, LTR |
 | Locale routing | `/ar/v/<uid>?t=<token>` | Arabic strings, RTL direction |
 | NFC UID uniqueness | Insert duplicate UID | DB rejects with constraint error |
@@ -354,6 +362,7 @@ known issues" — either fix or explicitly ask the user how to proceed.
 | `/[locale]` | Landing page (Nachi3D Certify intro) | Public |
 | `/[locale]/v/[uid]` | Public verification page | Public |
 | `/[locale]/gallery` | Public gallery of published pieces (Phase 4) | Public |
+| `/[locale]/login` | Admin email + password sign-in (Phase 5-prep) | Public |
 | `/[locale]/me` | Owner dashboard (Phase 5) | Logged in |
 | `/[locale]/admin` | Admin home | Admin only |
 | `/[locale]/admin/pieces` | Paginated list with status filter + gallery badge (Phase 2 + 4) | Admin only |
@@ -405,6 +414,15 @@ known issues" — either fix or explicitly ask the user how to proceed.
 - OG/Twitter meta on `/[locale]/gallery` (hero photo of most recent piece)
 - Landing-page CTA linking to the gallery
 
+### Phase 5-prep — Admin login (password)
+- `/[locale]/login` — email + password sign-in with zod validation
+- `/[locale]/admin` gate redirects unauthenticated → `/login`,
+  authenticated non-admin → `/login?error=access_denied`
+- Admin top-bar with "Connecté en tant que <email>" + logout link
+- Test fixtures use distinctive `test-*-do-not-use` passwords; production
+  admins are created via the Supabase dashboard
+- `/api/test/signin` remains gated by `E2E_TEST_LOGIN_ENABLED` (off in prod)
+
 ### Phase 5 — Owner claim + transfer
 - Magic-link claim flow via Resend + Supabase Auth
 - `/me` owner dashboard
@@ -419,6 +437,44 @@ known issues" — either fix or explicitly ask the user how to proceed.
 - Webhook from nachi3d.com to auto-create draft pieces on sale
 - Collector profiles (opt-in)
 - API for nachi3d.com to embed verified-piece badges
+
+## Admin Auth (Phase 5-prep)
+
+The admin surface is gated by an email + password sign-in flow at
+`/[locale]/login` backed by `supabase.auth.signInWithPassword`. The
+session is cookie-based via `@supabase/ssr` — no localStorage, no
+client-side token storage.
+
+**Operational notes:**
+
+- **Account creation** — production admin users are provisioned by
+  hand in the Supabase dashboard (Auth → Users → Add user) with the
+  email auto-confirmed. There is no public sign-up surface and there is
+  no in-app account creation UI. Anyone with admin needs gets a row
+  added by the operator.
+- **`is_admin` is the source of truth** — the login flow authenticates
+  any valid Supabase user, then checks `profiles.is_admin` server-side.
+  Non-admin authenticated users are immediately signed out and bounced
+  back to `/login?error=access_denied`. To grant or revoke admin access,
+  toggle `profiles.is_admin` in the database (dashboard SQL editor).
+- **Password reset** — there is no in-app forgot-password flow. Reset is
+  done from the Supabase dashboard (Auth → Users → ⋯ → Send recovery
+  email, or set a new password directly). Reasoning: with a tiny admin
+  set, manual ops is safer than shipping a self-serve flow that has to
+  defend against enumeration / abuse.
+- **No magic links here** — magic-link auth ships in Phase 5 for the
+  public claim/transfer flow and is intentionally distinct from admin
+  sign-in.
+- **Test fixtures** — `scripts/seed-remote.ts` creates `admin@nachi3d.test`
+  and `collector@nachi3d.test` with distinctive passwords
+  (`test-admin-password-do-not-use` / `test-collector-password-do-not-use`).
+  The "do-not-use" suffix is deliberate: anyone scanning the file should
+  immediately recognize them as fixtures. These accounts must NOT exist
+  in the production Supabase project.
+- **`/api/test/signin`** — kept for local fast-iteration (`npm run dev:signin`)
+  and Playwright global setup. Gated by `E2E_TEST_LOGIN_ENABLED=1` —
+  the route returns 404 when the flag is unset. This flag is NOT set in
+  the production Vercel environment.
 
 ## Supabase Notes
 
