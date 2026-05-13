@@ -4,6 +4,60 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] — 2026-05-13
+
+Phase 5-prep — admin password auth and hard-delete operator tooling. The
+admin surface is now properly gated by a Supabase email + password
+sign-in, and pieces can be irreversibly deleted from the edit page when
+fixtures or mis-registered entries need to be wiped.
+
+### ✨ Features
+
+- **Admin password login at `/[locale]/login`.** Email + password sign-in
+  via `supabase.auth.signInWithPassword`, cookie-based session through
+  `@supabase/ssr`. Zod-validated form, generic invalid-credentials error
+  (no user-enumeration leak), and an `?error=access_denied` banner for
+  authenticated users who lack `is_admin`.
+- **Admin top bar with logged-in email indicator and logout control.**
+  Every `/admin` page surfaces the signed-in admin's email and a logout
+  button that calls `signOut()` server-side and redirects to
+  `/[locale]/login`.
+- **`is_admin` gate on every `/admin` route.** Unauthenticated visitors
+  are redirected to `/[locale]/login`; authenticated non-admins are
+  immediately signed out and bounced to `/login?error=access_denied`.
+  Already-authenticated admins hitting `/login` are sent on to
+  `/[locale]/admin` instead.
+- **Hard delete on `/admin/pieces/[id]/edit`.** Danger zone reveals a
+  typed-confirmation modal that requires the operator to retype the
+  piece's `piece_number` (leading zeros forgiven) before the destructive
+  action unlocks. `DELETE /api/admin/pieces/[id]` is the programmatic
+  equivalent (admin-only, 401 anonymous, 403 non-admin).
+- **Cascade deletion.** Deleting a piece removes the `pieces` row,
+  cascades `provenance_events` + `verification_logs` via FK, clears the
+  cached certificate PDF in the `cards` bucket, and wipes every object
+  under the `<id>/` prefix in `piece-photos`. There is no trash bin —
+  see the Hard-delete policy in `CLAUDE.md`.
+
+### 🔧 Internal
+
+- **`requireAdminPage()` helper.** Centralized the admin-gate logic that
+  every `/admin/...` server component previously inlined, so the
+  redirect behavior is uniform and changes to the gate happen in exactly
+  one place.
+- **Storage helpers in `lib/storage/piece-assets.ts`.** New module owns
+  the bucket-level cleanup paths (cached card PDF + the
+  `piece-photos/<id>/` prefix) that `deletePiece()` calls. Keeps the
+  destructive storage operations off the page-level code.
+- **Distinctive `do-not-use` fixture passwords in `seed-remote`.**
+  `scripts/seed-remote.ts` now provisions the test admin / collector
+  with passwords ending in `-do-not-use`, so anyone scanning the seed
+  output immediately recognizes them as fixtures rather than real
+  credentials.
+- **`DeletedBanner` client component with auto-strip URL param.**
+  Renders the "piece deleted" toast on the admin pieces list after a
+  successful hard delete and auto-strips the `?deleted=…` URL parameter
+  on mount so refreshes don't re-trigger the banner.
+
 ## [0.4.0] — 2026-05-13
 
 Phase 4 — public gallery. Every published `show_in_gallery=true` piece
