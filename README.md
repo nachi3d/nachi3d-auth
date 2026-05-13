@@ -260,6 +260,28 @@ across the four families). Re-running `fetch:fonts` therefore
 requires Python 3 with `fontTools` (`pip install fonttools`); fresh
 clones don't need either since the prepared TTFs are committed.
 
+## Maintenance scripts
+
+One-off operational commands that talk to the remote Supabase project.
+All of them honour the same project-ref interlock used by `db:seed`,
+so a misconfigured `.env.local` refuses to run instead of touching the
+wrong project.
+
+| Command | When to run |
+|---|---|
+| `npm run purge:cards` | After any change to PDF content (verification domain, copy, layout, fonts). Wipes every cached PDF in the `cards` storage bucket so the next `GET /api/admin/cards/[id]` regenerates from scratch. Idempotent. |
+
+`invalidateCardCache()` only fires when a piece is edited via
+`updatePiece()`, so PDFs generated before a content change stay stale
+until the underlying row is touched. `purge:cards` is the one-shot
+invalidation that covers the whole bucket — run it after the deploy
+that changes shared card content (e.g. the verification domain in the
+trilingual notice).
+
+```bash
+npm run purge:cards
+```
+
 ## Roadmap
 
 - **Phase 1** *(this release)* — Foundation: schema, RLS, HMAC, verification page, admin gate, i18n, Playwright.
