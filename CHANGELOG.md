@@ -58,6 +58,16 @@ fixtures or mis-registered entries need to be wiped.
   successful hard delete and auto-strips the `?deleted=…` URL parameter
   on mount so refreshes don't re-trigger the banner.
 
+### 🔒 Security
+
+- **HMAC secret rotated; `compute_piece_verification_token()` Postgres
+  function deprecated in favor of Node-side `signToken()`.** Rotation
+  performed via `npm run rotate-tokens -- --yes`; every row in `pieces`
+  re-signed under the new secret. The Postgres GUC `app.hmac_secret`
+  and its companion function are no longer load-bearing — all token
+  computation now lives in `lib/hmac.ts`. See "HMAC secret rotation" in
+  `CLAUDE.md` for the procedure.
+
 ## [0.4.0] — 2026-05-13
 
 Phase 4 — public gallery. Every published `show_in_gallery=true` piece
