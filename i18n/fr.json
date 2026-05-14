@@ -169,6 +169,16 @@
     "signOut": "Se déconnecter",
     "loginRequired": "Veuillez vous connecter pour continuer."
   },
+  "nav": {
+    "home": "Accueil",
+    "gallery": "Galerie",
+    "admin": "Administration",
+    "pieces": "Pièces",
+    "new_piece": "Nouvelle pièce",
+    "edit_piece": "Modifier #{number}",
+    "back": "Retour",
+    "back_to_gallery": "Retour à la galerie"
+  },
   "login": {
     "title": "Connexion",
     "subtitle": "Accès réservé aux administrateurs.",

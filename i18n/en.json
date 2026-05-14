@@ -169,6 +169,16 @@
     "signOut": "Sign out",
     "loginRequired": "Please sign in to continue."
   },
+  "nav": {
+    "home": "Home",
+    "gallery": "Gallery",
+    "admin": "Administration",
+    "pieces": "Pieces",
+    "new_piece": "New piece",
+    "edit_piece": "Edit #{number}",
+    "back": "Back",
+    "back_to_gallery": "Back to the gallery"
+  },
   "login": {
     "title": "Sign in",
     "subtitle": "Admin access only.",
