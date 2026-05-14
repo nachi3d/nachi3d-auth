@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/routing";
 import { requireAdminPage } from "@/lib/auth/admin-guard";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 export const dynamic = "force-dynamic";
 
@@ -19,12 +20,20 @@ export default async function AdminPage({ params }: AdminPageProps) {
 
   await requireAdminPage(locale);
   const t = await getTranslations("admin");
+  const tNav = await getTranslations("nav");
 
   return (
     <main
       data-testid="admin-gate"
       className="mx-auto max-w-3xl px-6 py-16"
     >
+      <Breadcrumb
+        locale={locale}
+        segments={[
+          { label: tNav("home"), href: `/${locale}` },
+          { label: tNav("admin") },
+        ]}
+      />
       <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary-400">
         Nachi3D Certify
       </p>

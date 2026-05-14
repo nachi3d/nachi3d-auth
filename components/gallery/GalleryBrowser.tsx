@@ -205,7 +205,7 @@ export function GalleryBrowser({
         >
           {visibleCards.map((card) => {
             const padded = String(card.piece_number).padStart(4, "0");
-            const href = `/${locale}/v/${card.nfc_uid}?t=${card.token}`;
+            const href = `/${locale}/v/${card.nfc_uid}?t=${card.token}&from=gallery`;
             return (
               <li key={card.id} data-testid="gallery-card">
                 <Link

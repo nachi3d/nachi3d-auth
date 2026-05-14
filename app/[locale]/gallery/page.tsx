@@ -11,6 +11,7 @@ import {
   parseLicenseFilter,
 } from "@/lib/server/gallery";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 // Pages are cached at the edge for 1 hour; cards don't change minute by
 // minute, and an admin flipping show_in_gallery is fine to surface on
@@ -89,6 +90,7 @@ export default async function GalleryPage({
     locale,
     namespace: "gallery.filters",
   });
+  const tNav = await getTranslations({ locale, namespace: "nav" });
 
   const filterLabels = {
     original: tFilters("original"),
@@ -103,6 +105,13 @@ export default async function GalleryPage({
       className="brand-atmosphere mx-auto max-w-6xl px-6 py-16"
       data-testid="gallery-page"
     >
+      <Breadcrumb
+        locale={locale}
+        segments={[
+          { label: tNav("home"), href: `/${locale}` },
+          { label: tNav("gallery") },
+        ]}
+      />
       <header className="mb-12 border-b border-dark-700 pb-10">
         <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary-400">
           Nachi3D Certify
