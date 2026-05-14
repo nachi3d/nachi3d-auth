@@ -4,6 +4,53 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — 2026-05-14
+
+Phase 5-prep navigation aids land alongside the HMAC secret rotation
+tooling that shipped to `dev` after v0.5.0. Breadcrumbs and back links
+remove the dependency on the browser back button across both the public
+verification surface and the admin panel.
+
+### ✨ Features
+
+- **Breadcrumb navigation across all admin pages and the public
+  gallery.** `/admin`, `/admin/pieces`, `/admin/pieces/new`,
+  `/admin/pieces/[id]/edit` and `/[locale]/gallery` now carry a
+  locale-aware breadcrumb trail above the page title. The last segment
+  shows the current page; earlier segments are clickable links. Under
+  `dir="rtl"` the chevron flips (`›` → `‹`) and the trail reads
+  right-to-left.
+- **Conditional "back to gallery" link on verification pages.** Shown
+  only when arriving from the gallery via `?from=gallery`, so a
+  customer scanning an NFC chip never sees a back link they didn't
+  earn. Gallery cards link with `?from=gallery` so the round-trip works
+  end-to-end.
+- **`BackLink` on the claim coming-soon page.** Subtle "← Home" link
+  back to `/[locale]` so visitors who landed on the placeholder can
+  return without the browser back button.
+
+### 🔒 Security
+
+- **HMAC secret rotation tooling.** `npm run rotate-tokens` script
+  recomputes `verification_token` for every row in `pieces` under the
+  current `HMAC_SECRET`. Idempotent (deterministic) — safe to re-run.
+  Operator procedure documented in `CLAUDE.md` under "HMAC secret
+  rotation".
+- **`compute_piece_verification_token()` Postgres function deprecated.**
+  All token computation now happens Node-side via
+  `lib/hmac.ts::signToken()`. The Postgres GUC `app.hmac_secret` and
+  its companion function are no longer load-bearing — hosted Supabase
+  rejects `alter database postgres set ...` anyway, so collapsing onto
+  Node is both simpler and the only viable path.
+
+### 🔧 Internal
+
+- **Breadcrumb + BackLink UI primitives with locale + RTL support.**
+  `components/ui/Breadcrumb.tsx` and `components/ui/BackLink.tsx` —
+  small composable primitives consumed by every page that needs nav
+  aids. Both take a `locale` prop, prefix all hrefs with `/[locale]`,
+  and flip chevron / arrow direction under RTL.
+
 ## [0.5.0] — 2026-05-13
 
 Phase 5-prep — admin password auth and hard-delete operator tooling. The
