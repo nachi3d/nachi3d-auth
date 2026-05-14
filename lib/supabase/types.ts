@@ -30,6 +30,7 @@ export type PieceRow = {
   current_owner_id: string | null;
   status: PieceStatus;
   show_in_gallery: boolean;
+  is_fixture: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -78,8 +79,14 @@ export type Database = {
       };
       pieces: {
         Row: PieceRow;
-        Insert: Omit<PieceRow, "id" | "created_at" | "updated_at"> & {
+        Insert: Omit<
+          PieceRow,
+          "id" | "is_fixture" | "created_at" | "updated_at"
+        > & {
           id?: string;
+          // is_fixture is set ONLY by the service-role seed script.
+          // Defaults false in the database; admin code paths never pass it.
+          is_fixture?: boolean;
           created_at?: string;
           updated_at?: string;
         };

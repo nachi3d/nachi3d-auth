@@ -1,17 +1,27 @@
 import { test, expect } from "@playwright/test";
 import { signToken } from "@/lib/hmac";
 import { ADMIN_STATE_PATH } from "./fixtures/auth";
+import { setFixtureGalleryVisibility } from "./fixtures/seed-control";
 
 const SEED_PIECE_ID = "00000000-0000-0000-0000-000000000001";
 const SEED_NFC_UID = "04A1B2C3D4E580";
 
+// The "gallery card carries from=gallery" round-trip needs the
+// canonical seed piece (#9001) to actually appear on /gallery. Seed
+// fixtures default to show_in_gallery=false (production gallery must
+// stay empty of test data), so flip it visible for this spec only.
 test.describe("Phase 5-prep — navigation aids", () => {
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     if (!process.env.HMAC_SECRET) {
       throw new Error(
         "HMAC_SECRET must be set in .env.local for navigation.spec.ts",
       );
     }
+    await setFixtureGalleryVisibility([SEED_PIECE_ID], true);
+  });
+
+  test.afterAll(async () => {
+    await setFixtureGalleryVisibility([SEED_PIECE_ID], false);
   });
 
   test.describe("public surfaces", () => {
@@ -168,7 +178,7 @@ test.describe("Phase 5-prep — navigation aids", () => {
       await page.goto(`/en/admin/pieces/${SEED_PIECE_ID}/edit`);
       await expect(page.getByTestId("breadcrumb")).toBeVisible();
       await expect(page.getByTestId("breadcrumb-segment-2")).toContainText(
-        "#0001",
+        "#9001",
       );
     });
   });

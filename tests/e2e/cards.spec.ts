@@ -124,7 +124,7 @@ test.describe("Phase 3 — card PDFs", () => {
       expect(text).toContain("PAINT");
       expect(text).toContain("EDITION");
       expect(text).toContain("PIECE");
-      expect(text).toContain("#0001");
+      expect(text).toContain("#9001");
       expect(text).toContain("hello@nachi3d.com");
 
       // EN / FR notices: assert multiple load-bearing substrings from

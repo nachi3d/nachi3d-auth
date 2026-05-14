@@ -346,6 +346,9 @@ Before merging any branch, verify all of these still work:
 | Back link — direct NFC tap | `/[locale]/v/[uid]?t=<token>` (no `from`) | `back-link` is absent (customer scan path stays minimal) |
 | Back link — error states | Tamper or not-found panel | `back-link` is absent even if `from=gallery` is set |
 | Navigation RTL | `/ar/gallery` | breadcrumb separator flips to `‹` and `html` has `dir="rtl"` |
+| Data safety — env guard | `npm run db:seed` without `ALLOW_DESTRUCTIVE_SEED=1` | Loud `[seed-remote] … skipping prune` warning; no rows deleted; canonical fixtures upserted additively |
+| Data safety — fixture scope | `ALLOW_DESTRUCTIVE_SEED=1 npm run db:seed` against a DB carrying an `is_fixture=false` row | The non-fixture row survives; only non-canonical `is_fixture=true` rows are deleted |
+| Data safety — admin API | POST/PATCH `/api/admin/pieces` with `is_fixture: true` in the body | Returned row has `is_fixture: false`; zod strips the field, server never reads it |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -600,6 +603,77 @@ client-side token storage.
   and Playwright global setup. Gated by `E2E_TEST_LOGIN_ENABLED=1` —
   the route returns 404 when the flag is unset. This flag is NOT set in
   the production Vercel environment.
+
+## Data safety
+
+**Tests and production currently share one Supabase project**
+(`dxxwtjtjrslhsljnkiik`). The `.env.local` URL + service-role key resolve
+to the same hosted database that serves `verify.nachi3dlabs.com`. There
+is no separate test project today; running e2e against `.env.local` hits
+the live data. (See "Future hardening" at the bottom of this section.)
+
+In May 2026 a real piece (`Erpon`) was lost when the seed script's prune
+step deleted every `pieces` row whose UUID was not in a hard-coded seed
+list. Two-layer protection prevents recurrence:
+
+### Layer 1 — `ALLOW_DESTRUCTIVE_SEED` env guard
+
+`scripts/seed-remote.ts` only runs the prune block when
+`process.env.ALLOW_DESTRUCTIVE_SEED === "1"`. With the flag unset (the
+default everywhere except Playwright), the prune is skipped entirely
+and the script only upserts canonical fixtures additively.
+
+- **Set ONLY in `playwright.config.ts`** (both `process.env` for the
+  Playwright runner — global-setup runs before webServer — and inside
+  `webServer.env` so the dev server inherits it).
+- **NEVER set in `.env.local`** or any production environment.
+- **NEVER set in CI** unless that CI job points at a dedicated test
+  Supabase project (currently it doesn't).
+- **NEVER run `npm run db:seed` interactively** without first
+  re-reading this section. The script logs a loud warning either way,
+  but the additive path is the safe default for a reason.
+
+### Layer 2 — `is_fixture` column
+
+`pieces.is_fixture boolean not null default false` (added in
+`20260514000000_add_is_fixture_flag.sql`). The seed prune is scoped to
+`is_fixture = true`, so even with `ALLOW_DESTRUCTIVE_SEED=1` set, only
+rows explicitly marked as fixtures can be deleted.
+
+- The flag is set ONLY by `seed-remote.ts` (service-role, server-side).
+- No admin form, no public/admin API, no zod schema includes
+  `is_fixture` — the field is silently stripped from any payload by
+  zod's default `.strip()` behavior, and `lib/server/pieces.ts`
+  only spreads validated fields. An e2e spec
+  (`admin-pieces.spec.ts → "is_fixture in admin payload is silently
+  stripped"`) asserts this.
+- Real operator pieces default to `false` at insert time — they are
+  structurally unreachable by the seed prune even if Layer 1 is
+  defeated.
+
+### Reserved `piece_number` ranges
+
+- **1–8999** — real operator pieces. Untouchable by the seed.
+- **9001–9003** — canonical seed fixtures (Test Subject, Hidden
+  Subject, Licensed Subject). The seed upserts them with
+  `is_fixture=true`.
+- **9100–9899** — test-created throwaway pieces (admin-pieces.spec.ts).
+  These rows carry `is_fixture=false` (admin API never sets the flag),
+  so the seed prune does NOT touch them — tests must clean up after
+  themselves via the `createdPieceIds` afterEach hook in that spec.
+
+The number range is convention, not a constraint — there is no DB-level
+check enforcing it. The actual safety guarantee is the `is_fixture`
+column.
+
+### Future hardening (Phase 6)
+
+The cleanest long-term fix is a separate Supabase project for tests,
+selected via `.env.test` and pointed at by `playwright.config.ts`.
+Production data and test data would no longer coexist. Deferred today
+because the operator's free-tier slots are already allocated; revisit
+when the cost of a third project is justified or a paid plan is in
+place.
 
 ## Hard-delete policy
 

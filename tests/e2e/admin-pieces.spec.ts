@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 import { signToken } from "@/lib/hmac";
 import {
   ADMIN_STATE_PATH,
@@ -15,6 +15,33 @@ function uniqueUid(prefix: string): string {
     .toUpperCase()
     .padStart(12, "F");
   return (prefix + rand).slice(0, 14).padEnd(14, "0");
+}
+
+// Track every piece a test creates via the admin API so the
+// afterEach hook can DELETE it by id. The seed prune is now
+// is_fixture-scoped (see scripts/seed-remote.ts) and admin-created
+// rows carry is_fixture=false, so they are NOT cleaned up implicitly
+// anymore — tests must clean up after themselves.
+const createdPieceIds = new Set<string>();
+
+async function cleanupCreated(request: APIRequestContext): Promise<void> {
+  const ids = Array.from(createdPieceIds);
+  createdPieceIds.clear();
+  // Best-effort: a failed delete here shouldn't fail the test suite
+  // (the test that created the piece has already passed/failed by now).
+  // Errors are reported to the test log for visibility but swallowed.
+  await Promise.all(
+    ids.map(async (id) => {
+      try {
+        await request.delete(`/api/admin/pieces/${id}`);
+      } catch (e) {
+        console.warn(
+          `[admin-pieces.spec] cleanup: delete ${id} failed:`,
+          e instanceof Error ? e.message : e,
+        );
+      }
+    }),
+  );
 }
 
 test.describe("Phase 2 — admin pieces", () => {
@@ -34,6 +61,10 @@ test.describe("Phase 2 — admin pieces", () => {
   test.describe("admin context", () => {
     test.use({ storageState: ADMIN_STATE_PATH });
 
+    test.afterEach(async ({ request }) => {
+      await cleanupCreated(request);
+    });
+
     test("register-then-verify roundtrip", async ({ page, browser }) => {
       // Cold Next compilation of /admin/pieces/new + the redirected
       // /admin/pieces/[id]/edit, plus a remote Supabase round trip, can
@@ -42,15 +73,22 @@ test.describe("Phase 2 — admin pieces", () => {
       test.setTimeout(60_000);
       const uid = uniqueUid("AB");
 
+      // Use a piece_number distinct from canonical seed fixtures
+      // (9001/9002/9003 are reserved). 9101 sits inside the test-created
+      // band (9100–9899) so the seed prune leaves it alone too.
       await page.goto("/en/admin/pieces/new");
       await page.getByTestId("field-nfc_uid").fill(uid);
       await page.getByTestId("field-character_name").fill("Roundtrip Subject");
-      await page.getByTestId("field-piece_number").fill("9001");
+      await page.getByTestId("field-piece_number").fill("9101");
       await page.getByTestId("field-sculpt_date").fill("2026-04-01");
       await page.getByTestId("field-paint_date").fill("2026-04-15");
       await page.getByTestId("publish").click();
 
-      await page.waitForURL(/\/admin\/pieces\/[0-9a-f-]+\/edit/);
+      await page.waitForURL(/\/admin\/pieces\/([0-9a-f-]+)\/edit/);
+      const editUrl = page.url();
+      const createdId = editUrl.match(/\/pieces\/([0-9a-f-]+)\/edit/)?.[1];
+      if (createdId) createdPieceIds.add(createdId);
+
       const url = (await page
         .getByTestId("verification-url")
         .textContent())?.trim();
@@ -65,7 +103,7 @@ test.describe("Phase 2 — admin pieces", () => {
       expect(response?.status()).toBe(200);
       await expect(
         anonPage.getByTestId("verification-piece-number"),
-      ).toContainText("#9001");
+      ).toContainText("#9101");
       await anon.close();
     });
 
@@ -101,6 +139,7 @@ test.describe("Phase 2 — admin pieces", () => {
       const { piece } = (await create.json()) as {
         piece: { id: string };
       };
+      createdPieceIds.add(piece.id);
 
       await page.goto(`/en/admin/pieces/${piece.id}/edit`);
       const dropZone = page.getByTestId("photo-uploader");
@@ -201,6 +240,7 @@ test.describe("Phase 2 — admin pieces", () => {
       });
       expect(create.status()).toBe(201);
       const { piece } = (await create.json()) as { piece: { id: string } };
+      createdPieceIds.add(piece.id);
 
       // Upload one photo so we exercise the photo-folder cleanup path.
       // The piece-photos bucket is public, so the URL is reachable until
@@ -240,6 +280,9 @@ test.describe("Phase 2 — admin pieces", () => {
       // DB row is gone — GET /api/admin/pieces/[id] returns 404.
       const getAfter = await request.get(`/api/admin/pieces/${piece.id}`);
       expect(getAfter.status()).toBe(404);
+      // Already deleted by this test — drop from cleanup so afterEach
+      // doesn't log a 404 trying to re-delete.
+      createdPieceIds.delete(piece.id);
 
       // The piece-photos bucket folder is cleared. The previously
       // public URL now 404s. Storage caching behaviour can lag for a
@@ -282,6 +325,7 @@ test.describe("Phase 2 — admin pieces", () => {
       });
       expect(create.status()).toBe(201);
       const { piece } = (await create.json()) as { piece: { id: string } };
+      createdPieceIds.add(piece.id);
 
       await page.goto(`/en/admin/pieces/${piece.id}/edit`);
       await page.getByTestId("danger-zone-open").click();
@@ -301,11 +345,7 @@ test.describe("Phase 2 — admin pieces", () => {
       await input.fill(`000${pieceNumber}`);
       await expect(input).toHaveAttribute("data-matches", "true");
       await expect(confirm).toBeEnabled();
-
-      // Cleanup so we don't leave the fixture behind. (The pruning in
-      // seed-remote handles future runs, but it's tidy to delete now.)
-      const del = await request.delete(`/api/admin/pieces/${piece.id}`);
-      expect(del.ok()).toBeTruthy();
+      // Cleanup handled by afterEach via createdPieceIds.
     });
 
     test("hard delete modal: cancel closes modal without deleting", async ({
@@ -332,6 +372,7 @@ test.describe("Phase 2 — admin pieces", () => {
       });
       expect(create.status()).toBe(201);
       const { piece } = (await create.json()) as { piece: { id: string } };
+      createdPieceIds.add(piece.id);
 
       await page.goto(`/en/admin/pieces/${piece.id}/edit`);
       await page.getByTestId("danger-zone-open").click();
@@ -342,9 +383,57 @@ test.describe("Phase 2 — admin pieces", () => {
       // The piece is still there.
       const stillThere = await request.get(`/api/admin/pieces/${piece.id}`);
       expect(stillThere.status()).toBe(200);
+      // Cleanup handled by afterEach via createdPieceIds.
+    });
 
-      // Tidy: delete via API to keep the test database clean.
-      await request.delete(`/api/admin/pieces/${piece.id}`);
+    test("is_fixture in admin payload is silently stripped (data-safety guard)", async ({
+      request,
+    }) => {
+      // Defense-in-depth check on the data-safety contract: is_fixture is
+      // an internal seed-only flag (see scripts/seed-remote.ts and
+      // CLAUDE.md "Data safety"). Even if a caller passes is_fixture=true
+      // to POST /api/admin/pieces, the row must come back is_fixture=false
+      // — the zod schema strips unknown keys and createPiece never reads
+      // the field. This guarantees the seed-prune scope can never reach
+      // any piece an admin creates through the UI or API.
+      const uid = uniqueUid("BE");
+      const pieceNumber = 9450 + Math.floor(Math.random() * 50);
+      const create = await request.post("/api/admin/pieces", {
+        data: {
+          nfc_uid: uid,
+          piece_number: pieceNumber,
+          edition_number: null,
+          edition_total: null,
+          character_name: "Fixture Probe",
+          character_quote: null,
+          license_status: "original",
+          license_notes: null,
+          sculpt_date: "2026-04-01",
+          paint_date: "2026-04-15",
+          photos: [],
+          status: "draft",
+          // The hostile field — must be silently dropped.
+          is_fixture: true,
+        },
+      });
+      expect(create.status()).toBe(201);
+      const { piece } = (await create.json()) as {
+        piece: { id: string; is_fixture: boolean };
+      };
+      createdPieceIds.add(piece.id);
+      expect(piece.is_fixture).toBe(false);
+
+      // Same check on the PATCH path — is_fixture in an update payload
+      // must not flip the flag either.
+      const patch = await request.patch(`/api/admin/pieces/${piece.id}`, {
+        data: { is_fixture: true, character_name: "Fixture Probe Edited" },
+      });
+      expect(patch.ok()).toBeTruthy();
+      const { piece: patched } = (await patch.json()) as {
+        piece: { is_fixture: boolean; character_name: string };
+      };
+      expect(patched.is_fixture).toBe(false);
+      expect(patched.character_name).toBe("Fixture Probe Edited");
     });
 
     test("nfc uid uniqueness rejected at insert", async ({ request }) => {
@@ -436,7 +525,7 @@ test.describe("Phase 2 — admin pieces", () => {
     const res = await page.goto(`/en/v/${SEEDED_UID}?t=${token}`);
     expect(res?.status()).toBe(200);
     await expect(page.getByTestId("verification-piece-number")).toContainText(
-      "#0001",
+      "#9001",
     );
     await ctx.close();
   });
