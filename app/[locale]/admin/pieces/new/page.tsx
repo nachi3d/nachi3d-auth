@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/routing";
 import { requireAdminPage } from "@/lib/auth/admin-guard";
 import { nextPieceNumber } from "@/lib/server/pieces";
 import { PieceForm } from "@/components/admin/PieceForm";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { buildPieceFormLabels } from "../labels";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export default async function NewPiecePage({ params }: PageProps) {
   await requireAdminPage(locale);
 
   const t = await getTranslations("admin.pieces");
+  const tNav = await getTranslations("nav");
   const tForm = await getTranslations("admin.pieces.form");
   const tLicense = await getTranslations("admin.pieces.license");
   const tPhotos = await getTranslations("admin.pieces.photos");
@@ -30,6 +32,14 @@ export default async function NewPiecePage({ params }: PageProps) {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
+      <Breadcrumb
+        locale={locale}
+        segments={[
+          { label: tNav("admin"), href: `/${locale}/admin` },
+          { label: tNav("pieces"), href: `/${locale}/admin/pieces` },
+          { label: tNav("new_piece") },
+        ]}
+      />
       <header className="mb-10">
         <p className="mb-2 text-xs uppercase tracking-[0.3em] text-primary-400">
           Nachi3D Certify

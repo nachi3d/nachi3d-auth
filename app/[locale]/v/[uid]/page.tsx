@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyToken } from "@/lib/hmac";
 import { TamperPanel } from "@/components/verification/TamperPanel";
 import { NotFoundPanel } from "@/components/verification/NotFoundPanel";
+import { BackLink } from "@/components/ui/BackLink";
 import { HeroCarousel } from "@/components/verification/HeroCarousel";
 import { CharacterQuote } from "@/components/verification/CharacterQuote";
 import { AuthenticatedSeal } from "@/components/verification/AuthenticatedSeal";
@@ -22,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 interface VerifyPageProps {
   params: Promise<{ locale: string; uid: string }>;
-  searchParams: Promise<{ t?: string }>;
+  searchParams: Promise<{ t?: string; from?: string }>;
 }
 
 type PiecePublic = Pick<
@@ -129,9 +130,11 @@ export default async function VerifyPage({
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  const { t: token } = await searchParams;
+  const { t: token, from } = await searchParams;
   const t = await getTranslations("verify");
+  const tNav = await getTranslations("nav");
   const piece = await fetchPublishedPieceByUid(uid);
+  const fromGallery = from === "gallery";
 
   if (!piece) {
     return <NotFoundPanel title={t("notFoundTitle")} body={t("notFoundBody")} />;
@@ -161,6 +164,8 @@ export default async function VerifyPage({
       piece={piece}
       events={events}
       locale={locale}
+      fromGallery={fromGallery}
+      backToGalleryLabel={tNav("back_to_gallery")}
       labels={{
         authenticated: t("authenticated"),
         sculptDate: t("sculptDate"),
@@ -197,6 +202,8 @@ interface ViewProps {
   piece: PiecePublic;
   events: ProvenanceEventRow[];
   locale: Locale;
+  fromGallery: boolean;
+  backToGalleryLabel: string;
   labels: {
     authenticated: string;
     sculptDate: string;
@@ -236,6 +243,8 @@ function PieceVerificationView({
   piece,
   events,
   locale,
+  fromGallery,
+  backToGalleryLabel,
   labels,
 }: ViewProps) {
   return (
@@ -243,6 +252,13 @@ function PieceVerificationView({
       data-testid="verification-piece-card"
       className="brand-atmosphere mx-auto max-w-2xl px-6 py-12 md:py-16"
     >
+      {fromGallery ? (
+        <BackLink
+          locale={locale}
+          href={`/${locale}/gallery`}
+          label={backToGalleryLabel}
+        />
+      ) : null}
       <div className="mb-8 flex flex-col items-start gap-3">
         <AuthenticatedSeal label={labels.authenticated} />
       </div>
