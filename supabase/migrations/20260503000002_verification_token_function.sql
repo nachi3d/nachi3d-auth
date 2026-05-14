@@ -1,23 +1,25 @@
--- compute_piece_verification_token mirrors lib/hmac.ts signToken():
---   substring(hex(hmac(sha256, app.hmac_secret, "<uid>:<piece_id>")), 1, 24)
+-- DEPRECATED 2026-05-13: compute_piece_verification_token() is no longer
+-- called by any code path. All HMAC token computation now happens in Node
+-- via lib/hmac.ts signToken(). Kept here for migration history continuity
+-- only. Do not call from new code.
 --
--- The secret is read from the `app.hmac_secret` Postgres setting so the
--- DB never has the value in the migration history. To set it on a
--- Supabase project (run once, as a privileged role):
+-- Why deprecated: Supabase hosted projects strip the superuser ALTER
+-- DATABASE privilege, so `alter database postgres set app.hmac_secret =
+-- '...'` is rejected (42501). The GUC-based approach is no longer viable
+-- on the only environment we deploy to. The runtime always recomputed
+-- the token in Node anyway and only constant-time compared, so removing
+-- this function from active use changes nothing observable; rotation now
+-- happens entirely in Node via scripts/rotate-tokens.ts.
 --
---   alter database postgres set app.hmac_secret = 'your-real-secret';
+-- The function definition + the one-shot backfill UPDATE below are kept
+-- so the migration history remains replayable for any fresh database.
+-- The backfill runs once at migration time against the placeholder
+-- tokens inserted by earlier migrations / seed; on a hosted project
+-- where app.hmac_secret is unset it produces empty-key HMACs, which is
+-- harmless because rotate-tokens.ts (or seed-remote.ts) overwrites them
+-- with real Node-computed values immediately after.
 --
--- For the local Supabase stack, add the same statement to a .sql file
--- in supabase/seed-secrets/ (gitignored) and source it before db reset,
--- or run it directly against the local Postgres.
---
--- If the setting is unset, the function returns a token computed with an
--- empty key. The runtime never trusts the stored value (it always
--- recomputes from HMAC_SECRET + nfc_uid + piece_id and constant-time
--- compares to the URL `t` param), so a stale stored token is harmless —
--- but it will mismatch any URL the app generates. Phase 3 card PDFs
--- read piece_id+nfc_uid and re-sign at render time, so they are also
--- safe.
+-- See: scripts/rotate-tokens.ts, scripts/seed-remote.ts, lib/hmac.ts
 
 create or replace function public.compute_piece_verification_token(
   uid text,

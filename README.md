@@ -212,11 +212,12 @@ encrypted Vercel environment variables (Project Settings → Environment
 Variables), never in `vercel.json` or any committed config, never echoed
 in build logs. Rotating `HMAC_SECRET`
 invalidates every chip already programmed in the field — only do it as
-part of a deliberate revocation event. Also set
-`app.hmac_secret = '<HMAC_SECRET>'` on the production Postgres database
-(via `alter database postgres set app.hmac_secret = '...'` in the
-Supabase SQL editor) so the `compute_piece_verification_token()` function
-produces stored tokens that match what the runtime computes.
+part of a deliberate revocation event. See "Security operations →
+HMAC secret rotation" in `CLAUDE.md` for the full procedure (Vercel
+env update + `npm run rotate-tokens` + redeploy). The previous
+`alter database postgres set app.hmac_secret = '...'` step is no
+longer needed: `compute_piece_verification_token()` is deprecated and
+all token computation happens in Node via `lib/hmac.ts`.
 
 **Must NOT be set in production:** `E2E_TEST_LOGIN_ENABLED`. This flag
 (set automatically by `playwright.config.ts` on the dev server it
