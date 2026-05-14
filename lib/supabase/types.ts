@@ -31,6 +31,12 @@ export type PieceRow = {
   status: PieceStatus;
   show_in_gallery: boolean;
   is_fixture: boolean;
+  height_mm: number | null;
+  base_width_mm: number | null;
+  weight_g: number | null;
+  material: string | null;
+  scale: string | null;
+  variant_label: string | null;
   created_at: string;
   updated_at: string;
 };

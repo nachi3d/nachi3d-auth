@@ -24,6 +24,14 @@ const optionalString = (max: number) =>
       typeof v === "string" && v.length > 0 ? v : null,
     );
 
+// numeric(p,s) inputs from the admin form. Empty / null / "" → NULL.
+// Negative values rejected. Step 0.1 in the UI, but enforcement is
+// server-side: we just require finite + non-negative numbers and let
+// Postgres clamp to the column's scale.
+const optionalNonNegativeNumber = z
+  .union([z.literal(""), z.null(), z.coerce.number().nonnegative().finite()])
+  .transform((v) => (typeof v === "number" ? v : null));
+
 export const photoUrlSchema = z
   .string()
   .url()
@@ -72,6 +80,21 @@ const baseFields = {
   status: z.enum(PIECE_STATUSES),
 
   show_in_gallery: z.boolean().default(true),
+
+  // Phase 5-prep — physical characteristics. All optional. Mirror the
+  // SQL column types: numeric(6,1) / numeric(7,1) / short free-text.
+  // `.default(null)` so absent keys in a CREATE payload silently become
+  // null instead of failing validation. The PATCH schema below wraps
+  // each of these with `.optional()`, which short-circuits BEFORE the
+  // default fires — so a PATCH that omits the key truly omits it (the
+  // existing column value is preserved), and only an explicit `null` in
+  // the patch payload clears the field.
+  height_mm: optionalNonNegativeNumber.default(null),
+  base_width_mm: optionalNonNegativeNumber.default(null),
+  weight_g: optionalNonNegativeNumber.default(null),
+  material: optionalString(80).default(null),
+  scale: optionalString(40).default(null),
+  variant_label: optionalString(60).default(null),
 };
 
 const editionPairCheck = (data: {
@@ -143,6 +166,12 @@ export const piecePatchSchema = z
     photos: baseFields.photos.optional(),
     status: baseFields.status.optional(),
     show_in_gallery: baseFields.show_in_gallery.optional(),
+    height_mm: baseFields.height_mm.optional(),
+    base_width_mm: baseFields.base_width_mm.optional(),
+    weight_g: baseFields.weight_g.optional(),
+    material: baseFields.material.optional(),
+    scale: baseFields.scale.optional(),
+    variant_label: baseFields.variant_label.optional(),
   })
   .refine(
     (data) =>
