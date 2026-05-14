@@ -340,6 +340,12 @@ Before merging any branch, verify all of these still work:
 | Hard delete — verification URL no longer works | `/v/<uid>?t=<token>` after the piece is deleted | No piece data is leaked (404 / unknown UID panel) |
 | Hard delete — admin-only | `DELETE /api/admin/pieces/[id]` as `is_admin=false` | 403 `forbidden`; row untouched |
 | Hard delete — anonymous | `DELETE /api/admin/pieces/[id]` with no session | 401 `unauthenticated`; row untouched |
+| Breadcrumb — public | `/[locale]/gallery` | `breadcrumb` testid visible with `Home` → `Gallery`; first segment links to `/[locale]` |
+| Breadcrumb — admin | `/[locale]/admin/pieces/[id]/edit` | `breadcrumb` testid visible with `Administration` → `Pieces` → `Edit #NNNN` (current piece number) |
+| Back link — gallery referral | `/[locale]/v/[uid]?t=<token>&from=gallery` | `back-link` testid visible, `href=/[locale]/gallery` |
+| Back link — direct NFC tap | `/[locale]/v/[uid]?t=<token>` (no `from`) | `back-link` is absent (customer scan path stays minimal) |
+| Back link — error states | Tamper or not-found panel | `back-link` is absent even if `from=gallery` is set |
+| Navigation RTL | `/ar/gallery` | breadcrumb separator flips to `‹` and `html` has `dir="rtl"` |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -361,13 +367,35 @@ Before reporting any step as complete, Claude Code must:
 If any check fails, fix it before reporting. Do not report "done with
 known issues" — either fix or explicitly ask the user how to proceed.
 
+### Navigation aids (Phase 5-prep)
+
+Every page deeper than the landing carries either a breadcrumb trail or
+a back link, sitting above the page `<h1>`:
+
+- `components/ui/Breadcrumb.tsx` — horizontal trail, locale- and
+  RTL-aware. Earlier segments are links; the last segment is the current
+  page. RTL flips the chevron (`›` → `‹`) and the natural reading order.
+- `components/ui/BackLink.tsx` — single `← Back …` / `→ رجوع` link.
+  Arrow direction flips under RTL.
+- Public surfaces: `/gallery` carries a breadcrumb; `/v/[uid]` shows a
+  back link **only** when `?from=gallery` is present (a customer
+  scanning a chip never sees it). Gallery cards link with
+  `?from=gallery` so the round-trip works. Tamper and not-found panels
+  remain minimal — no back link.
+- Admin surfaces: `/admin`, `/admin/pieces`, `/admin/pieces/new`,
+  `/admin/pieces/[id]/edit` all carry breadcrumbs. `/login` does not
+  (it's an entry point).
+- i18n: `nav.*` keys in `i18n/{en,fr,ar}.json` (`home`, `gallery`,
+  `admin`, `pieces`, `new_piece`, `edit_piece`, `back`,
+  `back_to_gallery`).
+
 ## Routes & Surfaces
 
 | Route | Purpose | Auth |
 |---|---|---|
 | `/[locale]` | Landing page (Nachi3D Certify intro) | Public |
-| `/[locale]/v/[uid]` | Public verification page | Public |
-| `/[locale]/gallery` | Public gallery of published pieces (Phase 4) | Public |
+| `/[locale]/v/[uid]` | Public verification page (Phase 5-prep adds a conditional `← Back to gallery` link when `?from=gallery`) | Public |
+| `/[locale]/gallery` | Public gallery of published pieces (Phase 4); cards link with `?from=gallery` so verification shows a back link | Public |
 | `/[locale]/login` | Admin email + password sign-in (Phase 5-prep) | Public |
 | `/[locale]/me` | Owner dashboard (Phase 5) | Logged in |
 | `/[locale]/admin` | Admin home | Admin only |
