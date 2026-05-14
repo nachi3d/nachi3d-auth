@@ -5,6 +5,7 @@ import { isLocale } from "@/i18n/routing";
 import { requireAdminPage } from "@/lib/auth/admin-guard";
 import { listPieces } from "@/lib/server/pieces";
 import { DeletedBanner } from "@/components/admin/DeletedBanner";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ export default async function AdminPiecesListPage({
 
   await requireAdminPage(locale);
   const t = await getTranslations("admin.pieces");
+  const tNav = await getTranslations("nav");
 
   const sp = await searchParams;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
@@ -48,6 +50,13 @@ export default async function AdminPiecesListPage({
   return (
     <main className="mx-auto max-w-5xl px-6 py-12" data-testid="admin-pieces-list">
       <DeletedBanner />
+      <Breadcrumb
+        locale={locale}
+        segments={[
+          { label: tNav("admin"), href: `/${locale}/admin` },
+          { label: tNav("pieces") },
+        ]}
+      />
       <header className="mb-10 flex flex-wrap items-baseline justify-between gap-4">
         <div>
           <p className="mb-2 text-xs uppercase tracking-[0.3em] text-primary-400">

@@ -6,6 +6,7 @@ import { getPieceById } from "@/lib/server/pieces";
 import { signToken } from "@/lib/hmac";
 import { PieceForm } from "@/components/admin/PieceForm";
 import { DangerZone } from "@/components/admin/DangerZone";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { buildPieceFormLabels } from "../../labels";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export default async function EditPiecePage({
   if (!piece) notFound();
 
   const t = await getTranslations("admin.pieces");
+  const tNav = await getTranslations("nav");
   const tForm = await getTranslations("admin.pieces.form");
   const tLicense = await getTranslations("admin.pieces.license");
   const tPhotos = await getTranslations("admin.pieces.photos");
@@ -65,6 +67,14 @@ export default async function EditPiecePage({
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
+      <Breadcrumb
+        locale={locale}
+        segments={[
+          { label: tNav("admin"), href: `/${locale}/admin` },
+          { label: tNav("pieces"), href: `/${locale}/admin/pieces` },
+          { label: tNav("edit_piece", { number: paddedNumber }) },
+        ]}
+      />
       <header className="mb-10">
         <p className="mb-2 text-xs uppercase tracking-[0.3em] text-primary-400">
           Nachi3D Certify
