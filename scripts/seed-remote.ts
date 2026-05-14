@@ -3,8 +3,9 @@
  * Seed the REMOTE Supabase project with the fixtures Playwright depends on:
  *   - admin@nachi3d.test     (is_admin = true)
  *   - collector@nachi3d.test (is_admin = false)
- *   - one published piece    (id …001, NFC UID 04A1B2C3D4E580)
- *   - one provenance event   (created)
+ *   - three published fixture pieces (#9001 / #9002 / #9003), all
+ *     marked is_fixture = true
+ *   - one provenance event for the canonical seed piece
  *
  * Why this exists: supabase/seed.sql does raw INSERTs into auth.users +
  * auth.identities, which the local Supabase stack permits but `supabase
@@ -15,6 +16,28 @@
  *
  * Idempotent: re-runs upsert/update existing rows without error. Safe to
  * call from tests/e2e/global-setup.ts.
+ *
+ * ⚠️ DATA SAFETY
+ *
+ * Tests and production currently share one Supabase project (see
+ * "Data safety" in CLAUDE.md). Two-layer protection keeps real operator
+ * pieces alive:
+ *
+ *   1. ALLOW_DESTRUCTIVE_SEED env guard — the prune block is SKIPPED
+ *      unless this is set to exactly "1". An accidental run (CI, a
+ *      developer typing `npm run db:seed`, a stray import) leaves all
+ *      data alone and only upserts the fixtures additively.
+ *
+ *   2. is_fixture column scoping — even with the env guard set, the
+ *      prune deletes only rows where is_fixture = true. Real pieces
+ *      default to is_fixture = false at creation, and no admin form,
+ *      API, or zod schema exposes the column. The seed script (this
+ *      file) is the only place that flips it true. So a real piece is
+ *      structurally unreachable by the prune even if the env guard
+ *      were defeated.
+ *
+ * Defaults: ONLY playwright.config.ts sets ALLOW_DESTRUCTIVE_SEED=1.
+ * NEVER set it in .env.local or any production environment.
  *
  * Refuses to run unless NEXT_PUBLIC_SUPABASE_URL points at a *.supabase.co
  * host AND the loaded service-role JWT references the same project ref —
@@ -114,25 +137,48 @@ export async function seedRemote(): Promise<void> {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // Drop any non-seed pieces left behind by previous e2e runs. The
-  // Playwright suite (admin-pieces.spec.ts → register-then-verify) creates
-  // pieces with high piece_numbers and random NFC UIDs that pile up across
-  // runs and eventually collide on the unique constraints. Anything other
-  // than the canonical seed piece IDs is fair game on the test database.
-  // verification_logs and provenance_events for those pieces cascade-delete
-  // via the FK on_delete=cascade in the schema.
+  // ---------------------------------------------------------------
+  // Destructive prune — gated behind two independent layers.
+  // ---------------------------------------------------------------
+  //
+  // Layer 1 (env guard): ALLOW_DESTRUCTIVE_SEED must be exactly "1".
+  // Tests opt in via playwright.config.ts; everything else (a developer
+  // typing `npm run db:seed`, a stray import in CI, an accidental
+  // re-run) leaves the database alone and only upserts fixtures
+  // additively below.
+  //
+  // Layer 2 (semantic scope): even when the env guard passes, the
+  // delete is restricted to is_fixture = true. Real operator pieces
+  // default to is_fixture = false and no admin form, API, or zod schema
+  // exposes the column — so the prune cannot reach them no matter what
+  // an attacker or buggy caller does to bypass layer 1.
+  //
+  // verification_logs and provenance_events for the deleted rows
+  // cascade via FK on_delete=cascade in the schema.
   const SEED_PIECE_IDS = [
     SEED_PIECE_ID,
     SEED_HIDDEN_PIECE_ID,
     SEED_LICENSED_PIECE_ID,
   ];
-  const { error: pruneErr } = await sb
-    .from("pieces")
-    .delete()
-    .not("id", "in", `(${SEED_PIECE_IDS.map((id) => `"${id}"`).join(",")})`);
-  if (pruneErr) {
-    throw new Error(
-      `seed-remote: failed to prune non-seed pieces: ${pruneErr.message}`,
+  if (process.env.ALLOW_DESTRUCTIVE_SEED === "1") {
+    const { error: pruneErr } = await sb
+      .from("pieces")
+      .delete()
+      .eq("is_fixture", true)
+      .not("id", "in", `(${SEED_PIECE_IDS.map((id) => `"${id}"`).join(",")})`);
+    if (pruneErr) {
+      throw new Error(
+        `seed-remote: failed to prune non-canonical fixture pieces: ${pruneErr.message}`,
+      );
+    }
+    console.log(
+      "[seed-remote] ALLOW_DESTRUCTIVE_SEED=1 — pruned non-canonical " +
+        "is_fixture=true rows (real pieces untouched).",
+    );
+  } else {
+    console.warn(
+      "[seed-remote] ALLOW_DESTRUCTIVE_SEED is not set — skipping prune. " +
+        "Fixtures will be upserted additively. Real pieces are untouched.",
     );
   }
 
@@ -182,10 +228,14 @@ export async function seedRemote(): Promise<void> {
     }
   }
 
+  // Fixtures use the reserved piece_number range >= 9000 to keep them
+  // visually distinct from real operator pieces (1–8999) in the admin
+  // list, and so that future operator pieces can never collide with the
+  // fixture row numbers.
   const seededPieces = [
     {
       id: SEED_PIECE_ID,
-      piece_number: 1,
+      piece_number: 9001,
       edition_number: 1,
       edition_total: 10,
       nfc_uid: SEED_NFC_UID,
@@ -199,7 +249,7 @@ export async function seedRemote(): Promise<void> {
     // filter without breaking /v/[uid].
     {
       id: SEED_HIDDEN_PIECE_ID,
-      piece_number: 2,
+      piece_number: 9002,
       edition_number: 1,
       edition_total: 1,
       nfc_uid: SEED_HIDDEN_NFC_UID,
@@ -213,7 +263,7 @@ export async function seedRemote(): Promise<void> {
     // something to assert against.
     {
       id: SEED_LICENSED_PIECE_ID,
-      piece_number: 3,
+      piece_number: 9003,
       edition_number: 1,
       edition_total: 5,
       nfc_uid: SEED_LICENSED_NFC_UID,
@@ -245,6 +295,10 @@ export async function seedRemote(): Promise<void> {
         current_owner_id: null,
         status: "published",
         show_in_gallery: p.show_in_gallery,
+        // Mark every seeded row as a fixture so the layer-2 prune
+        // scope can find it. Real operator pieces never carry this
+        // flag (default false at the DB level).
+        is_fixture: true,
       },
       { onConflict: "id" },
     );
@@ -253,6 +307,15 @@ export async function seedRemote(): Promise<void> {
         `seed-remote: failed to upsert piece ${p.id}: ${pieceErr.message}`,
       );
     }
+
+    // Invalidate any cached certificate PDF for this piece. The
+    // upsert may have changed card-rendered fields (piece_number,
+    // character_name, etc.) and the cards bucket caches by piece-id;
+    // serving a stale PDF after a fixture bump made cards.spec.ts
+    // assert against the wrong piece number. Storage remove is
+    // idempotent — a missing object errors, which we deliberately
+    // swallow because "nothing cached" is a success state.
+    await sb.storage.from("cards").remove([`${p.id}.pdf`]);
   }
 
   // provenance_events has no natural unique key for "created" — only
