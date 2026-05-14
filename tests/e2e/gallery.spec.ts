@@ -26,14 +26,14 @@ test.describe("Phase 4 — public gallery", () => {
     const cards = page.getByTestId("gallery-card");
     await expect(cards.first()).toBeVisible();
 
-    // The seeded piece #0001 is on the grid.
+    // The seeded piece #9001 is on the grid.
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toBeVisible();
 
-    // The hidden piece (#0002) is NOT in the grid.
+    // The hidden piece (#9002) is NOT in the grid.
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0002" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9002" }),
     ).toHaveCount(0);
   });
 
@@ -47,7 +47,7 @@ test.describe("Phase 4 — public gallery", () => {
     );
     expect(response?.status()).toBe(200);
     await expect(page.getByTestId("verification-piece-number")).toContainText(
-      "#0002",
+      "#9002",
     );
   });
 
@@ -56,35 +56,35 @@ test.describe("Phase 4 — public gallery", () => {
 
     // Both seeded show_in_gallery=true pieces visible initially.
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
 
-    // Click the "licensed" chip — only #0003 (licensed) should remain.
+    // Click the "licensed" chip — only #9003 (licensed) should remain.
     await page.getByTestId("gallery-filter-licensed").click();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toHaveCount(0);
   });
 
   test("search filters by character_name client-side", async ({ page }) => {
     await page.goto("/en/gallery");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toBeVisible();
 
     const input = page.getByTestId("gallery-search");
     await input.fill("Licensed");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toHaveCount(0);
 
     // Esc clears the search.
@@ -109,7 +109,7 @@ test.describe("Phase 4 — public gallery", () => {
       .click();
     await page.waitForURL(/\/en\/v\/[0-9A-F]+\?t=/);
     await expect(page.getByTestId("verification-piece-number")).toContainText(
-      "#0001",
+      "#9001",
     );
   });
 
@@ -175,7 +175,7 @@ test.describe("Phase 4 — admin gallery toggle", () => {
     // Start from a known state: the licensed piece is visible in /gallery.
     await page.goto("/en/gallery");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
 
     // Flip to hidden via the edit form.
@@ -197,10 +197,10 @@ test.describe("Phase 4 — admin gallery toggle", () => {
     const body = (await after.json()) as { piece: { show_in_gallery: boolean } };
     expect(body.piece.show_in_gallery).toBe(false);
 
-    // /gallery now omits #0003.
+    // /gallery now omits #9003.
     await page.goto("/en/gallery");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toHaveCount(0);
 
     // Restore so subsequent runs of this spec start clean.
@@ -216,10 +216,10 @@ test.describe("Phase 4 — admin gallery toggle", () => {
     const badges = page.getByTestId("piece-gallery-badge");
     await expect(badges.first()).toBeVisible();
 
-    // The hidden seed piece (piece_number 2) may or may not be on page 1
-    // depending on how many extra pieces the admin-pieces.spec run left
-    // behind, so navigate to its edit page directly to verify the badge
-    // path renders both states.
+    // The hidden seed piece (piece_number 9002) may or may not be on
+    // page 1 depending on how many extra pieces the admin-pieces.spec
+    // run left behind, so navigate to its edit page directly to verify
+    // the badge path renders both states.
     await page.goto(`/en/admin/pieces/${SEED_HIDDEN_PIECE_ID}/edit`);
     const toggle = page.getByTestId("field-show_in_gallery");
     await expect(toggle).not.toBeChecked();

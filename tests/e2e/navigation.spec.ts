@@ -168,7 +168,7 @@ test.describe("Phase 5-prep — navigation aids", () => {
       await page.goto(`/en/admin/pieces/${SEED_PIECE_ID}/edit`);
       await expect(page.getByTestId("breadcrumb")).toBeVisible();
       await expect(page.getByTestId("breadcrumb-segment-2")).toContainText(
-        "#0001",
+        "#9001",
       );
     });
   });
