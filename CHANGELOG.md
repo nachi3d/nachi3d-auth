@@ -4,6 +4,68 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] — 2026-05-14
+
+Data-safety hardening after a real piece (`Erpon`) was lost when the
+seed script's prune step deleted every `pieces` row whose UUID was
+not in a hard-coded seed list. Tests and production share one
+Supabase project, so every `npm run test:e2e` against `.env.local`
+was wiping operator-created rows. Two-layer protection now makes
+this incident structurally impossible to repeat.
+
+### 🔒 Security
+
+- **Two-layer guard preventing e2e test runs from deleting production
+  pieces.** Belt-and-suspenders: an env flag and a column scope, each
+  sufficient to stop the data loss alone, deployed together.
+- **`is_fixture` column scopes the seed prune to test fixtures only —
+  real pieces are structurally unprunable.** New
+  `pieces.is_fixture boolean not null default false` (migration
+  `20260514000000_add_is_fixture_flag.sql`). The seed prune is
+  restricted to `is_fixture = true`. The flag is set ONLY by the
+  service-role seed script — no admin form, no public/admin API, no
+  zod schema exposes it.
+- **`ALLOW_DESTRUCTIVE_SEED` env guard skips destructive seeding
+  unless explicitly opted in.** `scripts/seed-remote.ts` runs the
+  prune block only when `ALLOW_DESTRUCTIVE_SEED === "1"`. The flag is
+  set in `playwright.config.ts` and nowhere else; ad-hoc
+  `npm run db:seed` runs are now additive (loud `console.warn`
+  explains what was skipped). Never set this in `.env.local` or any
+  production environment.
+- **Reserved `piece_number` ranges: fixtures `>= 9000`, real pieces
+  `1–8999`.** Convention not constraint — the actual safety
+  guarantee is `is_fixture`. The range keeps fixtures visually
+  distinct in the admin list and prevents future operator pieces
+  from colliding with fixture row numbers.
+
+### 🔧 Internal
+
+- **Seed fixtures marked `is_fixture = true` and
+  `show_in_gallery = false`.** All three canonical seed pieces
+  (#9001 / #9002 / #9003) carry both flags so the layer-2 prune
+  scope can find them and the public `/[locale]/gallery` surface
+  never shows test infrastructure. Specs that need the fixtures
+  visible (`gallery.spec.ts`, `navigation.spec.ts`) opt in via a new
+  `tests/e2e/fixtures/seed-control.ts` helper that flips
+  `show_in_gallery=true` in `beforeAll` and reverts in `afterAll`.
+- **Test teardown deletes created pieces by ID.** `admin-pieces.spec.ts`
+  no longer relies on the seed prune to clean up after itself. Each
+  test pushes the created piece's id into a module-scoped `Set`; the
+  admin-context `afterEach` hook iterates and DELETEs each one
+  best-effort. The previous "tidy: delete via API" inline cleanups
+  are removed.
+- **Admin API strips `is_fixture` from payloads.** Zod's default
+  `.strip()` behavior silently drops the field from any
+  POST/PATCH body, and `lib/server/pieces.ts` only spreads
+  validated fields. A new e2e spec
+  (`admin-pieces.spec.ts → "is_fixture in admin payload is silently
+  stripped"`) asserts that POST + PATCH both return
+  `is_fixture: false` regardless of the payload.
+- **Seed invalidates cached certificate PDFs on upsert.** The fixture
+  bump from `piece_number = 1` to `9001` made `cards.spec.ts` assert
+  against a stale cached PDF. The seed now removes
+  `cards/<id>.pdf` after each fixture upsert.
+
 ## [0.6.0] — 2026-05-14
 
 Phase 5-prep navigation aids land alongside the HMAC secret rotation
