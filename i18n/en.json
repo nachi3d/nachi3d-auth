@@ -69,6 +69,18 @@
       "title": "Own this piece?",
       "body": "Claim it to your Nachi3D account so future taps show you as the owner, and so you can transfer it cleanly if you ever resell.",
       "buttonLabel": "Claim this piece"
+    },
+    "variantBadge": "Variant",
+    "specs": {
+      "sectionTitle": "Specifications",
+      "height": "Height",
+      "base_width": "Base width",
+      "weight": "Weight",
+      "material": "Material",
+      "scale": "Scale",
+      "variant": "Variant",
+      "mm": "mm",
+      "g": "g"
     }
   },
   "claim": {
@@ -147,6 +159,20 @@
       "errors": {
         "title": "Couldn't save",
         "fallback": "Please review the highlighted fields."
+      },
+      "specs": {
+        "sectionTitle": "Physical characteristics",
+        "optional": "Optional",
+        "height": "Height (mm)",
+        "base_width": "Base width (mm)",
+        "weight": "Weight (g)",
+        "material": "Material",
+        "materialPlaceholder": "e.g. 8K resin + wood base",
+        "scale": "Scale",
+        "scalePlaceholder": "e.g. 75mm or 1/12",
+        "variant": "Variant",
+        "variantPlaceholder": "e.g. Size L",
+        "variantHint": "For designs available in multiple sizes (e.g. Raze S/M/L)."
       },
       "danger": {
         "sectionTitle": "Danger zone",

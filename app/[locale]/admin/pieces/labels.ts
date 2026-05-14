@@ -8,6 +8,7 @@ export function buildPieceFormLabels(
   tLicense: Translator,
   tPhotos: Translator,
   tErrors: Translator,
+  tSpecs: Translator,
 ): PieceFormLabels {
   const licenseOptions = {
     original: tLicense("original"),
@@ -35,6 +36,20 @@ export function buildPieceFormLabels(
     uidLockedHint: tForm("uidLockedHint"),
     show_in_gallery: tForm("show_in_gallery"),
     showInGalleryHint: tForm("showInGalleryHint"),
+    specs: {
+      sectionTitle: tSpecs("sectionTitle"),
+      optional: tSpecs("optional"),
+      height: tSpecs("height"),
+      base_width: tSpecs("base_width"),
+      weight: tSpecs("weight"),
+      material: tSpecs("material"),
+      materialPlaceholder: tSpecs("materialPlaceholder"),
+      scale: tSpecs("scale"),
+      scalePlaceholder: tSpecs("scalePlaceholder"),
+      variant: tSpecs("variant"),
+      variantPlaceholder: tSpecs("variantPlaceholder"),
+      variantHint: tSpecs("variantHint"),
+    },
     licenseOptions,
     photoLabels: {
       addPhotos: tPhotos("addPhotos"),
