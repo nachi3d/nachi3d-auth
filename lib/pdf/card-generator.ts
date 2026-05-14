@@ -64,6 +64,12 @@ export interface GenerateCardOptions {
     | "character_quote"
     | "sculpt_date"
     | "paint_date"
+    | "height_mm"
+    | "base_width_mm"
+    | "weight_g"
+    | "material"
+    | "scale"
+    | "variant_label"
   >;
   siteUrl: string;
   notices: AuthNotices;
@@ -445,6 +451,12 @@ function drawBack(
     PAGE_WIDTH / 2,
     y,
   );
+  y -= 22;
+
+  // Specs block — only render rows with a value. If no specs are filled,
+  // the section is omitted entirely so the card layout regresses to
+  // exactly the pre-Phase-5-prep design (no empty header, no shift).
+  drawSpecsBlock(page, fonts, opts.piece, y);
 
   // Support email — bottom
   drawCenteredText(
@@ -455,6 +467,78 @@ function drawBack(
     SAFE_MARGIN,
     INK_MUTED,
   );
+}
+
+function formatSpecNumber(value: number): string {
+  return value.toFixed(1);
+}
+
+function specRows(
+  piece: GenerateCardOptions["piece"],
+): Array<{ label: string; value: string }> {
+  const rows: Array<{ label: string; value: string }> = [];
+  if (piece.height_mm !== null) {
+    rows.push({ label: "HEIGHT", value: `${formatSpecNumber(piece.height_mm)} mm` });
+  }
+  if (piece.base_width_mm !== null) {
+    rows.push({ label: "BASE", value: `${formatSpecNumber(piece.base_width_mm)} mm` });
+  }
+  if (piece.weight_g !== null) {
+    rows.push({ label: "WEIGHT", value: `${formatSpecNumber(piece.weight_g)} g` });
+  }
+  if (piece.scale) {
+    rows.push({ label: "SCALE", value: piece.scale });
+  }
+  if (piece.material) {
+    rows.push({ label: "MATERIAL", value: piece.material });
+  }
+  if (piece.variant_label) {
+    rows.push({ label: "VARIANT", value: piece.variant_label });
+  }
+  return rows;
+}
+
+function drawSpecsBlock(
+  page: PDFPage,
+  fonts: CardFonts,
+  piece: GenerateCardOptions["piece"],
+  startY: number,
+): void {
+  const rows = specRows(piece);
+  if (rows.length === 0) return;
+
+  // Three-column grid; rows of (label small caps, value mono) stacked
+  // below each other. Two rows of three columns gives a 6-cell capacity
+  // which exactly fits the spec field set, so a fully-populated piece
+  // renders in a single tight block without paging.
+  const columns = 3;
+  const colWidth = (PAGE_WIDTH - 2 * SAFE_MARGIN) / columns;
+  const rowGap = 18;
+  const maxValueWidth = colWidth - 4;
+
+  let y = startY;
+  rows.forEach((row, i) => {
+    const col = i % columns;
+    if (col === 0 && i > 0) {
+      y -= rowGap;
+    }
+    const x = SAFE_MARGIN + col * colWidth;
+    page.drawText(row.label, {
+      x,
+      y,
+      size: 5.5,
+      font: fonts.sansRegular,
+      color: PRIMARY,
+    });
+    const clipped = clipToWidth(row.value, fonts.monoRegular, 8, maxValueWidth);
+    page.drawText(clipped, {
+      x,
+      y: y - 9,
+      size: 8,
+      font: fonts.monoRegular,
+      color: INK_LIGHT,
+    });
+  });
 }
 
 function drawMetaPair(
