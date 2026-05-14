@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { signToken } from "@/lib/hmac";
 import { ADMIN_STATE_PATH } from "./fixtures/auth";
+import { setFixtureGalleryVisibility } from "./fixtures/seed-control";
 
 const SEED_PIECE_ID = "00000000-0000-0000-0000-000000000001";
 const SEED_NFC_UID = "04A1B2C3D4E580";
@@ -8,11 +9,29 @@ const SEED_HIDDEN_PIECE_ID = "00000000-0000-0000-0000-000000000002";
 const SEED_HIDDEN_NFC_UID = "04B1C2D3E4F580";
 const SEED_LICENSED_PIECE_ID = "00000000-0000-0000-0000-000000000003";
 
+// Canonical seed fixtures default to show_in_gallery=false so the
+// production /gallery on verify.nachi3dlabs.com stays empty of test
+// infrastructure. This spec needs #9001 + #9003 visible for the
+// gallery-renders / license-filter / search / click assertions, so
+// flip them on for the spec run and revert on teardown. #9002 stays
+// false throughout — that is the "hidden seed piece" the spec asserts
+// against.
 test.describe("Phase 4 — public gallery", () => {
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     if (!process.env.HMAC_SECRET) {
       throw new Error("HMAC_SECRET must be set in .env.local for gallery.spec.ts");
     }
+    await setFixtureGalleryVisibility(
+      [SEED_PIECE_ID, SEED_LICENSED_PIECE_ID],
+      true,
+    );
+  });
+
+  test.afterAll(async () => {
+    await setFixtureGalleryVisibility(
+      [SEED_PIECE_ID, SEED_LICENSED_PIECE_ID],
+      false,
+    );
   });
 
   test("gallery renders published pieces; hidden piece is absent", async ({
@@ -163,6 +182,18 @@ test.describe("Phase 4 — public gallery", () => {
 
 test.describe("Phase 4 — admin gallery toggle", () => {
   test.use({ storageState: ADMIN_STATE_PATH });
+
+  // Same gating as the public-gallery describe: the licensed seed
+  // piece (#9003) defaults to show_in_gallery=false in production. The
+  // toggle test asserts a flip-from-on-to-off-then-back round trip, so
+  // we set it visible at the start and revert at the end.
+  test.beforeAll(async () => {
+    await setFixtureGalleryVisibility([SEED_LICENSED_PIECE_ID], true);
+  });
+
+  test.afterAll(async () => {
+    await setFixtureGalleryVisibility([SEED_LICENSED_PIECE_ID], false);
+  });
 
   test("toggling show_in_gallery=false hides the piece, then re-enabling restores it", async ({
     page,

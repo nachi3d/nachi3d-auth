@@ -232,6 +232,13 @@ export async function seedRemote(): Promise<void> {
   // visually distinct from real operator pieces (1–8999) in the admin
   // list, and so that future operator pieces can never collide with the
   // fixture row numbers.
+  //
+  // ALL fixtures are show_in_gallery=false — they are test
+  // infrastructure, not real artwork, and must not appear on the
+  // public /[locale]/gallery surface that customers see. The gallery
+  // e2e specs assert visibility via the live admin "show_in_gallery"
+  // toggle on the canonical pieces (turn it on, snapshot, turn it
+  // back off), not via the seed defaults.
   const seededPieces = [
     {
       id: SEED_PIECE_ID,
@@ -243,10 +250,8 @@ export async function seedRemote(): Promise<void> {
       character_quote: "Authenticity is what you carry, not what you claim.",
       license_status: "original" as const,
       license_notes: null as string | null,
-      show_in_gallery: true,
+      show_in_gallery: false,
     },
-    // Gallery-hidden but still published — exercises the /gallery
-    // filter without breaking /v/[uid].
     {
       id: SEED_HIDDEN_PIECE_ID,
       piece_number: 9002,
@@ -260,7 +265,8 @@ export async function seedRemote(): Promise<void> {
       show_in_gallery: false,
     },
     // Different license_status so the gallery license-filter test has
-    // something to assert against.
+    // something to assert against once the spec flips this fixture's
+    // show_in_gallery on at runtime.
     {
       id: SEED_LICENSED_PIECE_ID,
       piece_number: 9003,
@@ -271,7 +277,7 @@ export async function seedRemote(): Promise<void> {
       character_quote: null,
       license_status: "licensed" as const,
       license_notes: "Licensed for the test fixture.",
-      show_in_gallery: true,
+      show_in_gallery: false,
     },
   ];
 
