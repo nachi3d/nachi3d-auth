@@ -128,10 +128,10 @@ insert into public.pieces (
   nfc_uid, verification_token,
   character_name, character_quote,
   license_status, sculpt_date, paint_date,
-  photos, status
+  photos, status, is_fixture
 ) values (
   '00000000-0000-0000-0000-000000000001',
-  1, 1, 10,
+  9001, 1, 10,
   '04A1B2C3D4E580',
   'placeholder-recomputed-at-runtime',
   'Test Subject',
@@ -139,7 +139,7 @@ insert into public.pieces (
   'original',
   '2026-04-01', '2026-04-15',
   array[]::text[],
-  'published'
+  'published', true
 )
 on conflict (id) do update set
   piece_number = excluded.piece_number,

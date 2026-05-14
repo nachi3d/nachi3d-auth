@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { signToken } from "@/lib/hmac";
 import { ADMIN_STATE_PATH } from "./fixtures/auth";
+import { setFixtureGalleryVisibility } from "./fixtures/seed-control";
 
 const SEED_PIECE_ID = "00000000-0000-0000-0000-000000000001";
 const SEED_NFC_UID = "04A1B2C3D4E580";
@@ -8,11 +9,29 @@ const SEED_HIDDEN_PIECE_ID = "00000000-0000-0000-0000-000000000002";
 const SEED_HIDDEN_NFC_UID = "04B1C2D3E4F580";
 const SEED_LICENSED_PIECE_ID = "00000000-0000-0000-0000-000000000003";
 
+// Canonical seed fixtures default to show_in_gallery=false so the
+// production /gallery on verify.nachi3dlabs.com stays empty of test
+// infrastructure. This spec needs #9001 + #9003 visible for the
+// gallery-renders / license-filter / search / click assertions, so
+// flip them on for the spec run and revert on teardown. #9002 stays
+// false throughout — that is the "hidden seed piece" the spec asserts
+// against.
 test.describe("Phase 4 — public gallery", () => {
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     if (!process.env.HMAC_SECRET) {
       throw new Error("HMAC_SECRET must be set in .env.local for gallery.spec.ts");
     }
+    await setFixtureGalleryVisibility(
+      [SEED_PIECE_ID, SEED_LICENSED_PIECE_ID],
+      true,
+    );
+  });
+
+  test.afterAll(async () => {
+    await setFixtureGalleryVisibility(
+      [SEED_PIECE_ID, SEED_LICENSED_PIECE_ID],
+      false,
+    );
   });
 
   test("gallery renders published pieces; hidden piece is absent", async ({
@@ -26,14 +45,14 @@ test.describe("Phase 4 — public gallery", () => {
     const cards = page.getByTestId("gallery-card");
     await expect(cards.first()).toBeVisible();
 
-    // The seeded piece #0001 is on the grid.
+    // The seeded piece #9001 is on the grid.
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toBeVisible();
 
-    // The hidden piece (#0002) is NOT in the grid.
+    // The hidden piece (#9002) is NOT in the grid.
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0002" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9002" }),
     ).toHaveCount(0);
   });
 
@@ -47,7 +66,7 @@ test.describe("Phase 4 — public gallery", () => {
     );
     expect(response?.status()).toBe(200);
     await expect(page.getByTestId("verification-piece-number")).toContainText(
-      "#0002",
+      "#9002",
     );
   });
 
@@ -56,35 +75,35 @@ test.describe("Phase 4 — public gallery", () => {
 
     // Both seeded show_in_gallery=true pieces visible initially.
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
 
-    // Click the "licensed" chip — only #0003 (licensed) should remain.
+    // Click the "licensed" chip — only #9003 (licensed) should remain.
     await page.getByTestId("gallery-filter-licensed").click();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toHaveCount(0);
   });
 
   test("search filters by character_name client-side", async ({ page }) => {
     await page.goto("/en/gallery");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toBeVisible();
 
     const input = page.getByTestId("gallery-search");
     await input.fill("Licensed");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0001" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9001" }),
     ).toHaveCount(0);
 
     // Esc clears the search.
@@ -109,7 +128,7 @@ test.describe("Phase 4 — public gallery", () => {
       .click();
     await page.waitForURL(/\/en\/v\/[0-9A-F]+\?t=/);
     await expect(page.getByTestId("verification-piece-number")).toContainText(
-      "#0001",
+      "#9001",
     );
   });
 
@@ -164,6 +183,18 @@ test.describe("Phase 4 — public gallery", () => {
 test.describe("Phase 4 — admin gallery toggle", () => {
   test.use({ storageState: ADMIN_STATE_PATH });
 
+  // Same gating as the public-gallery describe: the licensed seed
+  // piece (#9003) defaults to show_in_gallery=false in production. The
+  // toggle test asserts a flip-from-on-to-off-then-back round trip, so
+  // we set it visible at the start and revert at the end.
+  test.beforeAll(async () => {
+    await setFixtureGalleryVisibility([SEED_LICENSED_PIECE_ID], true);
+  });
+
+  test.afterAll(async () => {
+    await setFixtureGalleryVisibility([SEED_LICENSED_PIECE_ID], false);
+  });
+
   test("toggling show_in_gallery=false hides the piece, then re-enabling restores it", async ({
     page,
     request,
@@ -175,7 +206,7 @@ test.describe("Phase 4 — admin gallery toggle", () => {
     // Start from a known state: the licensed piece is visible in /gallery.
     await page.goto("/en/gallery");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toBeVisible();
 
     // Flip to hidden via the edit form.
@@ -197,10 +228,10 @@ test.describe("Phase 4 — admin gallery toggle", () => {
     const body = (await after.json()) as { piece: { show_in_gallery: boolean } };
     expect(body.piece.show_in_gallery).toBe(false);
 
-    // /gallery now omits #0003.
+    // /gallery now omits #9003.
     await page.goto("/en/gallery");
     await expect(
-      page.getByTestId("gallery-card-number").filter({ hasText: "#0003" }),
+      page.getByTestId("gallery-card-number").filter({ hasText: "#9003" }),
     ).toHaveCount(0);
 
     // Restore so subsequent runs of this spec start clean.
@@ -216,10 +247,10 @@ test.describe("Phase 4 — admin gallery toggle", () => {
     const badges = page.getByTestId("piece-gallery-badge");
     await expect(badges.first()).toBeVisible();
 
-    // The hidden seed piece (piece_number 2) may or may not be on page 1
-    // depending on how many extra pieces the admin-pieces.spec run left
-    // behind, so navigate to its edit page directly to verify the badge
-    // path renders both states.
+    // The hidden seed piece (piece_number 9002) may or may not be on
+    // page 1 depending on how many extra pieces the admin-pieces.spec
+    // run left behind, so navigate to its edit page directly to verify
+    // the badge path renders both states.
     await page.goto(`/en/admin/pieces/${SEED_HIDDEN_PIECE_ID}/edit`);
     const toggle = page.getByTestId("field-show_in_gallery");
     await expect(toggle).not.toBeChecked();

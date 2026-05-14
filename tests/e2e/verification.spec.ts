@@ -24,7 +24,7 @@ test.describe("Verification page", () => {
     expect(response?.status()).toBe(200);
     await expect(
       page.getByTestId("verification-piece-number"),
-    ).toContainText("#0001");
+    ).toContainText("#9001");
     await expect(
       page.getByTestId("verification-character-name"),
     ).toContainText(SEEDED_CHARACTER_NAME);
@@ -51,7 +51,7 @@ test.describe("Verification page", () => {
     const html = await res.text();
 
     expect(html).toContain('property="og:title"');
-    expect(html).toMatch(/property="og:title"\s+content="[^"]*#0001[^"]*"/);
+    expect(html).toMatch(/property="og:title"\s+content="[^"]*#9001[^"]*"/);
     expect(html).toMatch(
       /property="og:title"\s+content="[^"]*Test Subject[^"]*"/,
     );
@@ -86,7 +86,7 @@ test.describe("Verification page", () => {
     const html = await res.text();
     expect(html).not.toContain(SEEDED_CHARACTER_NAME);
     expect(html).not.toContain(SEEDED_QUOTE);
-    expect(html).not.toMatch(/#0001\b/);
+    expect(html).not.toMatch(/#9001\b/);
 
     // OG meta on tamper path must NOT include piece info either.
     expect(html).not.toMatch(
