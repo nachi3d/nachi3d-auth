@@ -220,5 +220,131 @@
     "banner": {
       "accessDenied": "Access denied. This account does not have admin privileges."
     }
+  },
+  "footer": {
+    "copyright": "© Nachi3D {year}",
+    "ariaLabel": "Legal links",
+    "mentions": "Legal notice",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "legal": {
+    "lastUpdated": "Last updated: {date}",
+    "mentions": {
+      "title": "Legal notice",
+      "intro": "In compliance with EU and French disclosure requirements, this page identifies the editor and host of the Nachi3D Certify service.",
+      "sections": [
+        {
+          "title": "Editor",
+          "paragraphs": [
+            "Seàn McGannon, auto-entrepreneur trading under the Nachi3D brand.",
+            "Place of business: Essaouira, Morocco.",
+            "Contact: contact@nachi3dlabs.com.",
+            "Publication director: Seàn McGannon."
+          ]
+        },
+        {
+          "title": "Hosting",
+          "paragraphs": [
+            "The application is hosted by Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA. Vercel acts as the technical service provider for the front-end and serverless functions.",
+            "Database, authentication and file storage services are provided by Supabase Inc."
+          ]
+        },
+        {
+          "title": "Intellectual property",
+          "paragraphs": [
+            "The Nachi3D name, the figurine designs, the photographs published on the site and the source code of this service are the property of the editor, except where a piece's license status indicates otherwise. Reproduction without prior written consent is prohibited."
+          ]
+        },
+        {
+          "title": "Liability",
+          "paragraphs": [
+            "Nachi3D Certify is provided as an authenticity-verification utility. The editor takes reasonable care to keep the verification data accurate but offers no contractual warranty on uptime or completeness of the registry."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "This page explains what data Nachi3D Certify collects when you use the service, why we collect it, and how to exercise your rights under the EU General Data Protection Regulation (GDPR).",
+      "sections": [
+        {
+          "title": "What we collect on verification",
+          "paragraphs": [
+            "Every time a verification URL (/v/[uid]) is opened — whether by NFC tap, QR scan or direct link — we record one entry in our internal verification_logs table. The entry contains:",
+            "• the IP address-derived country code and region (read from Vercel edge headers; the raw IP itself is not stored);",
+            "• the browser user-agent string;",
+            "• the timestamp of the visit;",
+            "• whether the visitor was signed in as the owner of the piece (Phase 5+)."
+          ]
+        },
+        {
+          "title": "Authentication data",
+          "paragraphs": [
+            "Administrators sign in with an email address and password managed by Supabase Auth. The session is a strictly-necessary cookie required to access the admin panel. We do not use any tracking, analytics or third-party advertising cookies."
+          ]
+        },
+        {
+          "title": "Why we collect it",
+          "paragraphs": [
+            "Verification logs let the editor detect cloning attempts — a single chip pinging from multiple distant countries in a short window is a strong fraud signal. The legal basis is legitimate interest under GDPR Art. 6(1)(f). Authentication data is processed on the basis of contract performance with the administrator (GDPR Art. 6(1)(b))."
+          ]
+        },
+        {
+          "title": "Retention",
+          "paragraphs": [
+            "Verification logs are kept indefinitely for the lifetime of the corresponding piece. When a piece is permanently deleted, its logs are deleted with it via database cascade."
+          ]
+        },
+        {
+          "title": "Data transfers outside the EU",
+          "paragraphs": [
+            "Our hosting and database providers (Vercel Inc. and Supabase Inc.) are established in the United States. Data may therefore be processed in the USA under the standard contractual clauses (SCCs) adopted by the European Commission."
+          ]
+        },
+        {
+          "title": "Your rights",
+          "paragraphs": [
+            "Under the GDPR you may request access to, rectification of, erasure of or portability of the personal data we hold about you, and you may object to its processing. Write to contact@nachi3dlabs.com from the email address tied to your records. We will respond within one month."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of use",
+      "intro": "These terms apply to anyone using Nachi3D Certify to verify a figurine. They are distinct from any sales terms applicable to a purchase on nachi3d.com.",
+      "sections": [
+        {
+          "title": "Purpose of the service",
+          "paragraphs": [
+            "Nachi3D Certify is a public registry. Its sole purpose is to let a holder of a Nachi3D figurine confirm that the embedded NFC chip and printed certificate belong to a piece registered by the editor."
+          ]
+        },
+        {
+          "title": "Use of verification URLs",
+          "paragraphs": [
+            "By opening a verification URL, you accept that your IP-derived country, region, user-agent and the time of your visit are logged for the purposes described in the privacy policy. The service is provided as-is, free of charge, without warranty of fitness for any particular purpose."
+          ]
+        },
+        {
+          "title": "No warranty on the figurines",
+          "paragraphs": [
+            "Successful verification confirms that a piece is registered. It does not constitute an appraisal, an authentication for resale, or any commercial warranty on the figurine itself. Purchase terms remain governed by the sales contract between the buyer and Nachi3D."
+          ]
+        },
+        {
+          "title": "Acceptable use",
+          "paragraphs": [
+            "Automated scraping, denial-of-service attacks and attempts to enumerate or modify the registry are prohibited. The editor reserves the right to refuse or terminate access in case of abuse."
+          ]
+        },
+        {
+          "title": "Governing law",
+          "paragraphs": [
+            "These terms are governed by the laws of the Kingdom of Morocco. Any dispute that cannot be resolved amicably will be brought before the competent courts of Essaouira."
+          ]
+        }
+      ]
+    }
   }
 }

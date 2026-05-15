@@ -17,6 +17,7 @@ import {
   Specifications,
   type SpecsLabels,
 } from "@/components/verification/Specifications";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 import type {
   PieceRow,
   ProvenanceEventRow,
@@ -273,6 +274,7 @@ function PieceVerificationView({
   labels,
 }: ViewProps) {
   return (
+    <>
     <main
       data-testid="verification-piece-card"
       className="brand-atmosphere mx-auto max-w-2xl px-6 py-12 md:py-16"
@@ -387,6 +389,10 @@ function PieceVerificationView({
         />
       ) : null}
     </main>
+    {/* Footer only on the happy path — tamper + not-found panels return
+        earlier and stay minimal. */}
+    <SiteFooter locale={locale} />
+    </>
   );
 }
 
