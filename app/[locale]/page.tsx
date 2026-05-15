@@ -2,6 +2,7 @@ import Link from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/routing";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -17,7 +18,8 @@ export default async function LandingPage({ params }: PageProps) {
   const t = await getTranslations("landing");
 
   return (
-    <main className="brand-atmosphere mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-6 py-24">
+    <>
+    <main className="brand-atmosphere mx-auto flex max-w-2xl flex-col justify-center px-6 py-24">
       <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary-400">
         Nachi3D
       </p>
@@ -61,5 +63,7 @@ export default async function LandingPage({ params }: PageProps) {
 
       <p className="mt-16 text-sm text-dark-text-200">{t("learnMore")}</p>
     </main>
+    <SiteFooter locale={locale} />
+    </>
   );
 }

@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { isLocale } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { AdminTopBar } from "@/components/admin/AdminTopBar";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,7 @@ export default async function AdminLayout({
         />
       ) : null}
       {children}
+      <SiteFooter locale={locale} />
     </>
   );
 }
