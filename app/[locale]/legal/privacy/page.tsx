@@ -1,7 +1,5 @@
 // LEGAL: reviewed and adapted by Seàn McGannon; consult a lawyer before
 // scaling to high-volume sales.
-// LEGAL TODO: confirm the operator's preferred contact email
-// (currently contact@nachi3dlabs.com in i18n/{en,fr,ar}.json).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";

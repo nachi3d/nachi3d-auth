@@ -357,7 +357,7 @@ Before merging any branch, verify all of these still work:
 | Physical specs — RTL | `/ar/v/[uid]?t=<token>` for a piece with specs | `verification-specs` section renders and `html[dir="rtl"]` is set |
 | Legal — pages render | `GET /[locale]/legal/{mentions,privacy,terms}` in en/fr/ar | 200 + `legal-page-<slug>` testid visible + at least one `legal-section-*` rendered |
 | Legal — last-updated | Any legal page | `legal-last-updated` testid renders the date in the locale's long-form (e.g. "May 15, 2026" / "15 mai 2026") |
-| Legal — mentions disclosure | `/en/legal/mentions` HTML | Contains "Seàn McGannon", "Essaouira", "Vercel Inc.", "Supabase Inc.", "contact@nachi3dlabs.com" |
+| Legal — mentions disclosure | `/en/legal/mentions` HTML | Contains "Seàn McGannon", "Essaouira", "Vercel Inc.", "Supabase Inc.", "contact@nachi3d.com" |
 | Legal — privacy GDPR | `/en/legal/privacy` HTML | Contains "verification_logs", "GDPR", "legitimate interest", "erasure" — the GDPR audit hits |
 | Legal — terms governing law | `/en/legal/terms` HTML | Contains "Morocco" and "as-is" |
 | Footer — public pages | `/[locale]`, `/[locale]/gallery`, `/[locale]/login`, `/[locale]/v/[uid]?t=<valid>` | `site-footer` testid renders below the main content |
@@ -574,9 +574,11 @@ When to rotate:
   same `LegalPage` component renders all three with `.map()`. Each
   page hardcodes a `LAST_UPDATED` const at the top and formats it via
   `Intl.DateTimeFormat` for the active locale.
-- A `LEGAL: …` and `LEGAL TODO: confirm the operator's preferred
-  contact email` comment lives at the top of every legal page file so
-  the operator-review boundary is impossible to miss.
+- A `// LEGAL: reviewed and adapted by Seàn McGannon; consult a
+  lawyer before scaling to high-volume sales.` comment lives at the
+  top of every legal page file so the operator-review boundary is
+  impossible to miss.
+- Contact email used across all three pages: `contact@nachi3d.com`.
 - `components/ui/SiteFooter.tsx` is a server component carrying the
   three legal links + `© Nachi3D <year>`. Rendered on landing,
   gallery, verification happy-path, login, all admin pages, and the

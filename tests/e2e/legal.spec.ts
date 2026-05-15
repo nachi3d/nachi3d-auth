@@ -67,7 +67,7 @@ test.describe("Phase 5-prep — legal pages", () => {
     expect(html).toContain("Essaouira");
     expect(html).toContain("Vercel Inc.");
     expect(html).toContain("Supabase Inc.");
-    expect(html).toContain("contact@nachi3dlabs.com");
+    expect(html).toContain("contact@nachi3d.com");
   });
 
   test("privacy page covers the GDPR essentials", async ({ page }) => {
