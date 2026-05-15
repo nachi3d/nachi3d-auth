@@ -74,6 +74,7 @@
   /* Dark text — body and meta on dark surfaces */
   --color-dark-text-100: #c5c5d0;
   --color-dark-text-200: #9f9fb3;
+  --color-dark-text-300: #6b6b85;
 
   /* Accent — orange, used sparingly for highlights and gradients */
   --color-accent-400: #ff6b35;

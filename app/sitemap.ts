@@ -32,6 +32,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily" as const,
       priority: 0.9,
     },
+    {
+      url: `${base}/${locale}/legal/mentions`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.2,
+    },
+    {
+      url: `${base}/${locale}/legal/privacy`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.2,
+    },
+    {
+      url: `${base}/${locale}/legal/terms`,
+      lastModified: now,
+      changeFrequency: "yearly" as const,
+      priority: 0.2,
+    },
   ]);
 
   // 2) Every published piece's verification URL, signed token included

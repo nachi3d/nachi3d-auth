@@ -66,6 +66,12 @@ function readPieceFields(formData: FormData) {
     photos,
     status: get("status") ?? "draft",
     ...(show_in_gallery === undefined ? {} : { show_in_gallery }),
+    height_mm: get("height_mm") ?? "",
+    base_width_mm: get("base_width_mm") ?? "",
+    weight_g: get("weight_g") ?? "",
+    material: get("material") ?? "",
+    scale: get("scale") ?? "",
+    variant_label: get("variant_label") ?? "",
   };
 }
 

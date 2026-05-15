@@ -4,6 +4,67 @@ All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project follows [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] — 2026-05-15
+
+Phase 5-prep wraps with two operator-facing additions: physical
+characteristics on every piece (height, base, weight, material, scale,
+variant) surfaced across the verification page, PDF certificate, and
+admin form; and a trilingual legal surface — mentions légales, privacy
+policy, terms of use — anchored by a site-wide footer.
+
+### ✨ Features
+
+- **Physical characteristics fields on pieces.** Six new optional
+  fields — `height_mm`, `base_width_mm`, `weight_g`, `material`,
+  `scale`, `variant_label` — captured on the admin form, persisted via
+  the create + update server actions, displayed on `/v/[uid]` after
+  the provenance timeline, and rendered on the back of the PDF
+  certificate. Every field is independently optional; a piece with no
+  specs renders byte-for-byte like before. Numeric values use the
+  active locale's number formatting on the verification page.
+- **Variant badge near the character name on `/v/[uid]`.** When a piece
+  carries a `variant_label` (e.g. "Taille L"), the value also surfaces
+  as a prominent badge next to the character name so collectors of
+  multi-size designs spot the variant without scrolling to the specs
+  block.
+- **Locale-aware number formatting on verification page specs.**
+  Heights, base widths, and weights respect the active locale's decimal
+  conventions — FR uses comma decimals (`120,5 mm`), EN uses period
+  decimals (`120.5 mm`), AR follows the locale's number conventions.
+- **Trilingual legal pages.** Three new public pages under
+  `/[locale]/legal/`: `mentions` (mentions légales / legal notice),
+  `privacy` (GDPR-compliant privacy policy covering
+  `verification_logs`), and `terms` (terms of use governed by Moroccan
+  law). All three render from structured `legal.*` keys in
+  `i18n/{en,fr,ar}.json` via a shared `LegalPage` component, with a
+  `LAST_UPDATED` const at the top of each page file formatted via
+  `Intl.DateTimeFormat` for the active locale.
+- **Site-wide footer with legal links and copyright.** New
+  `components/ui/SiteFooter.tsx` renders on the landing, gallery,
+  login, verification happy-path, every admin page, and the three
+  legal pages themselves. Intentionally absent on tamper + not-found
+  panels so error states stay minimal. Footer links honor the active
+  locale (e.g. `/ar/legal/privacy` under `/ar`).
+- **Legal pages included in `sitemap.xml`.** Nine new entries (three
+  pages × three locales) with `changeFrequency: yearly` and low
+  priority — disclosure surfaces, not marketing.
+
+### 🔧 Internal
+
+- **`dark-text-300` color token.** New muted-foreground shade for
+  footer styling, sitting between the existing `dark-text-200` and the
+  primary text color. Used by `SiteFooter` for the copyright line and
+  inactive link states.
+- **Shared `LegalPage` server component.** Single component reads the
+  `{ title, intro, sections: [{ title, paragraphs[] }] }` shape from
+  `i18n/*.json` and `.map()`s into the rendered page. All three legal
+  routes are thin wrappers that pick the locale-namespaced content.
+- **`// LEGAL:` marker comments in legal page files.** Each of the
+  three legal page files carries a top-of-file `// LEGAL: reviewed and
+  adapted by Seàn McGannon; consult a lawyer before scaling to
+  high-volume sales.` comment so the operator-review boundary is
+  impossible to miss during future edits.
+
 ## [0.7.0] — 2026-05-14
 
 Data-safety hardening after a real piece (`Erpon`) was lost when the

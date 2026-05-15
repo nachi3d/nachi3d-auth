@@ -69,6 +69,18 @@
       "title": "Vous possédez cette pièce ?",
       "body": "Revendiquez-la sur votre compte Nachi3D pour apparaître comme propriétaire lors des futurs scans et la transférer proprement en cas de revente.",
       "buttonLabel": "Revendiquer cette pièce"
+    },
+    "variantBadge": "Variante",
+    "specs": {
+      "sectionTitle": "Caractéristiques",
+      "height": "Hauteur",
+      "base_width": "Largeur de socle",
+      "weight": "Poids",
+      "material": "Matériau",
+      "scale": "Échelle",
+      "variant": "Variante",
+      "mm": "mm",
+      "g": "g"
     }
   },
   "claim": {
@@ -148,6 +160,20 @@
         "title": "Impossible d'enregistrer",
         "fallback": "Vérifiez les champs en surbrillance."
       },
+      "specs": {
+        "sectionTitle": "Caractéristiques physiques",
+        "optional": "Optionnel",
+        "height": "Hauteur (mm)",
+        "base_width": "Largeur de socle (mm)",
+        "weight": "Poids (g)",
+        "material": "Matériau",
+        "materialPlaceholder": "ex. Résine 8K + socle bois",
+        "scale": "Échelle",
+        "scalePlaceholder": "ex. 75mm ou 1/12",
+        "variant": "Variante",
+        "variantPlaceholder": "ex. Taille L",
+        "variantHint": "Pour les modèles déclinés en plusieurs tailles (ex : Raze S/M/L)."
+      },
       "danger": {
         "sectionTitle": "Zone dangereuse",
         "subtitle": "Supprimer définitivement",
@@ -193,6 +219,132 @@
     },
     "banner": {
       "accessDenied": "Accès refusé. Ce compte n'a pas les privilèges d'administrateur."
+    }
+  },
+  "footer": {
+    "copyright": "© Nachi3D {year}",
+    "ariaLabel": "Liens légaux",
+    "mentions": "Mentions légales",
+    "privacy": "Confidentialité",
+    "terms": "Conditions"
+  },
+  "legal": {
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "mentions": {
+      "title": "Mentions légales",
+      "intro": "Conformément à la législation française et européenne, cette page identifie l'éditeur et l'hébergeur du service Nachi3D Certify.",
+      "sections": [
+        {
+          "title": "Éditeur",
+          "paragraphs": [
+            "Seàn McGannon, auto-entrepreneur exerçant sous la marque Nachi3D.",
+            "Lieu d'exercice : Essaouira, Maroc.",
+            "Contact : contact@nachi3d.com.",
+            "Directeur de la publication : Seàn McGannon."
+          ]
+        },
+        {
+          "title": "Hébergement",
+          "paragraphs": [
+            "L'application est hébergée par Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, USA. Vercel agit en tant que prestataire technique pour le front-end et les fonctions serverless.",
+            "Les services de base de données, d'authentification et de stockage sont fournis par Supabase Inc."
+          ]
+        },
+        {
+          "title": "Propriété intellectuelle",
+          "paragraphs": [
+            "Le nom Nachi3D, les sculptures, les photographies publiées sur le site et le code source de ce service sont la propriété de l'éditeur, sauf lorsque la licence d'une pièce indique le contraire. Toute reproduction sans autorisation écrite préalable est interdite."
+          ]
+        },
+        {
+          "title": "Responsabilité",
+          "paragraphs": [
+            "Nachi3D Certify est mis à disposition à titre d'outil de vérification d'authenticité. L'éditeur apporte un soin raisonnable à l'exactitude des données mais ne fournit aucune garantie contractuelle de disponibilité ni d'exhaustivité du registre."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "intro": "Cette page explique les données que Nachi3D Certify collecte lorsque vous utilisez le service, pourquoi nous les collectons et comment exercer vos droits au titre du Règlement général sur la protection des données (RGPD).",
+      "sections": [
+        {
+          "title": "Ce que nous collectons lors d'une vérification",
+          "paragraphs": [
+            "Chaque ouverture d'une URL de vérification (/v/[uid]) — par tap NFC, scan QR ou lien direct — crée une entrée dans notre table interne verification_logs. Cette entrée contient :",
+            "• le code pays et la région déduits de l'adresse IP (lus depuis les en-têtes de la couche edge de Vercel ; l'adresse IP brute n'est pas conservée) ;",
+            "• la chaîne user-agent du navigateur ;",
+            "• l'horodatage de la visite ;",
+            "• le fait que le visiteur soit ou non le propriétaire connecté de la pièce (Phase 5+)."
+          ]
+        },
+        {
+          "title": "Données d'authentification",
+          "paragraphs": [
+            "Les administrateurs se connectent avec une adresse e-mail et un mot de passe gérés par Supabase Auth. La session repose sur un cookie strictement nécessaire à l'accès au panneau d'administration. Aucun cookie de mesure d'audience, de tracking ou de publicité tierce n'est utilisé."
+          ]
+        },
+        {
+          "title": "Finalités",
+          "paragraphs": [
+            "Les journaux de vérification permettent à l'éditeur de détecter les tentatives de clonage : une même puce qui pingue depuis plusieurs pays éloignés dans un court laps de temps est un signal fort de fraude. La base légale est l'intérêt légitime au titre de l'art. 6 §1 f) du RGPD. Les données d'authentification sont traitées sur la base de l'exécution du contrat avec l'administrateur (art. 6 §1 b) du RGPD)."
+          ]
+        },
+        {
+          "title": "Durée de conservation",
+          "paragraphs": [
+            "Les journaux de vérification sont conservés sans limite de durée pour la durée de vie de la pièce correspondante. Lorsqu'une pièce est définitivement supprimée, ses journaux le sont avec elle par cascade au niveau de la base de données."
+          ]
+        },
+        {
+          "title": "Transferts hors UE",
+          "paragraphs": [
+            "Nos prestataires d'hébergement et de base de données (Vercel Inc. et Supabase Inc.) sont établis aux États-Unis. Les données peuvent donc être traitées aux USA dans le cadre des clauses contractuelles types (CCT) adoptées par la Commission européenne."
+          ]
+        },
+        {
+          "title": "Vos droits",
+          "paragraphs": [
+            "Au titre du RGPD, vous pouvez demander l'accès, la rectification, l'effacement ou la portabilité des données personnelles que nous détenons à votre sujet, et vous opposer à leur traitement. Écrivez à contact@nachi3d.com depuis l'adresse e-mail rattachée à vos données. Nous répondons sous un mois."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Conditions générales d'utilisation",
+      "intro": "Ces conditions s'appliquent à toute personne utilisant Nachi3D Certify pour vérifier une figurine. Elles sont distinctes des conditions de vente applicables à un achat sur nachi3d.com.",
+      "sections": [
+        {
+          "title": "Objet du service",
+          "paragraphs": [
+            "Nachi3D Certify est un registre public. Son unique objet est de permettre au détenteur d'une figurine Nachi3D de confirmer que la puce NFC intégrée et le certificat imprimé correspondent à une pièce enregistrée par l'éditeur."
+          ]
+        },
+        {
+          "title": "Utilisation des URL de vérification",
+          "paragraphs": [
+            "En ouvrant une URL de vérification, vous acceptez que votre pays et votre région déduits de l'IP, votre user-agent et l'heure de la visite soient consignés aux fins décrites dans la politique de confidentialité. Le service est fourni en l'état, gratuitement, sans garantie d'adéquation à un usage particulier."
+          ]
+        },
+        {
+          "title": "Pas de garantie sur les figurines",
+          "paragraphs": [
+            "Une vérification réussie confirme qu'une pièce est enregistrée. Elle ne vaut ni expertise, ni authentification à la revente, ni garantie commerciale sur la figurine elle-même. Les conditions d'achat restent régies par le contrat de vente entre l'acheteur et Nachi3D."
+          ]
+        },
+        {
+          "title": "Usages acceptables",
+          "paragraphs": [
+            "Le scraping automatisé, les attaques par déni de service et les tentatives d'énumération ou de modification du registre sont interdits. L'éditeur se réserve le droit de refuser ou de résilier l'accès en cas d'abus."
+          ]
+        },
+        {
+          "title": "Droit applicable",
+          "paragraphs": [
+            "Les présentes conditions sont régies par le droit du Royaume du Maroc. Tout différend qui ne pourrait être résolu à l'amiable sera porté devant les tribunaux compétents d'Essaouira."
+          ]
+        }
+      ]
     }
   }
 }

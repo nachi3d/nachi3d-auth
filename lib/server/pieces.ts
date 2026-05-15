@@ -90,6 +90,12 @@ export async function createPiece(rawInput: unknown): Promise<PieceRow> {
       current_owner_id: null,
       status: input.status,
       show_in_gallery: input.show_in_gallery,
+      height_mm: input.height_mm,
+      base_width_mm: input.base_width_mm,
+      weight_g: input.weight_g,
+      material: input.material,
+      scale: input.scale,
+      variant_label: input.variant_label,
     })
     .select("*")
     .single();

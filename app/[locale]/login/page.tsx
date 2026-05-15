@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { isLocale } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { LoginForm, type LoginFormLabels } from "@/components/auth/LoginForm";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,8 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-24">
+    <>
+    <main className="mx-auto flex max-w-md flex-col justify-center px-6 py-24">
       <div
         data-testid="login-card"
         className="rounded-sm border border-dark-700 bg-dark-900/60 p-8 shadow-xl"
@@ -72,5 +74,7 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
         />
       </div>
     </main>
+    <SiteFooter locale={locale} />
+    </>
   );
 }

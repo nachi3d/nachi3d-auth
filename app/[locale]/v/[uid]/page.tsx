@@ -13,6 +13,11 @@ import { CharacterQuote } from "@/components/verification/CharacterQuote";
 import { AuthenticatedSeal } from "@/components/verification/AuthenticatedSeal";
 import { ProvenanceTimeline } from "@/components/verification/ProvenanceTimeline";
 import { ClaimCTA } from "@/components/verification/ClaimCTA";
+import {
+  Specifications,
+  type SpecsLabels,
+} from "@/components/verification/Specifications";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 import type {
   PieceRow,
   ProvenanceEventRow,
@@ -39,6 +44,12 @@ type PiecePublic = Pick<
   | "paint_date"
   | "photos"
   | "current_owner_id"
+  | "height_mm"
+  | "base_width_mm"
+  | "weight_g"
+  | "material"
+  | "scale"
+  | "variant_label"
 >;
 
 async function fetchPublishedPieceByUid(
@@ -48,7 +59,7 @@ async function fetchPublishedPieceByUid(
   const { data, error } = await supabase
     .from("pieces")
     .select(
-      "id, piece_number, edition_number, edition_total, nfc_uid, character_name, character_quote, sculpt_date, paint_date, photos, current_owner_id, status",
+      "id, piece_number, edition_number, edition_total, nfc_uid, character_name, character_quote, sculpt_date, paint_date, photos, current_owner_id, status, height_mm, base_width_mm, weight_g, material, scale, variant_label",
     )
     .eq("nfc_uid", uid)
     .eq("status", "published")
@@ -133,6 +144,7 @@ export default async function VerifyPage({
   const { t: token, from } = await searchParams;
   const t = await getTranslations("verify");
   const tNav = await getTranslations("nav");
+  const tSpecs = await getTranslations("verify.specs");
   const piece = await fetchPublishedPieceByUid(uid);
   const fromGallery = from === "gallery";
 
@@ -193,6 +205,18 @@ export default async function VerifyPage({
           body: t("claim.body"),
           buttonLabel: t("claim.buttonLabel"),
         },
+        variantBadge: t("variantBadge"),
+        specs: {
+          sectionTitle: tSpecs("sectionTitle"),
+          height: tSpecs("height"),
+          base_width: tSpecs("base_width"),
+          weight: tSpecs("weight"),
+          material: tSpecs("material"),
+          scale: tSpecs("scale"),
+          variant: tSpecs("variant"),
+          mm: tSpecs("mm"),
+          g: tSpecs("g"),
+        },
       }}
     />
   );
@@ -220,6 +244,8 @@ interface ViewProps {
       body: string;
       buttonLabel: string;
     };
+    variantBadge: string;
+    specs: SpecsLabels;
   };
 }
 
@@ -248,6 +274,7 @@ function PieceVerificationView({
   labels,
 }: ViewProps) {
   return (
+    <>
     <main
       data-testid="verification-piece-card"
       className="brand-atmosphere mx-auto max-w-2xl px-6 py-12 md:py-16"
@@ -293,6 +320,18 @@ function PieceVerificationView({
         {piece.character_name}
       </h1>
 
+      {piece.variant_label ? (
+        <p
+          data-testid="verification-variant-label"
+          className="mt-3 inline-flex items-center gap-2 rounded-sm border border-primary-500/40 bg-primary-500/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-primary-300"
+        >
+          <span className="text-dark-text-200">{labels.variantBadge}</span>
+          <span className="font-medium text-primary-200 normal-case tracking-normal">
+            {piece.variant_label}
+          </span>
+        </p>
+      ) : null}
+
       {piece.character_quote ? (
         <CharacterQuote
           quote={piece.character_quote}
@@ -328,6 +367,19 @@ function PieceVerificationView({
         locale={locale}
       />
 
+      <Specifications
+        values={{
+          height_mm: piece.height_mm,
+          base_width_mm: piece.base_width_mm,
+          weight_g: piece.weight_g,
+          material: piece.material,
+          scale: piece.scale,
+          variant_label: piece.variant_label,
+        }}
+        labels={labels.specs}
+        locale={locale}
+      />
+
       {piece.current_owner_id === null ? (
         <ClaimCTA
           href={`/${locale}/claim/coming-soon`}
@@ -337,6 +389,10 @@ function PieceVerificationView({
         />
       ) : null}
     </main>
+    {/* Footer only on the happy path — tamper + not-found panels return
+        earlier and stay minimal. */}
+    <SiteFooter locale={locale} />
+    </>
   );
 }
 

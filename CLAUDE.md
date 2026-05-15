@@ -234,7 +234,9 @@ pieces              id, piece_number (unique), edition_number,
                     edition_total, nfc_uid (unique), verification_token,
                     character_name, character_quote, license_status,
                     license_notes, sculpt_date, paint_date, photos[],
-                    current_owner_id, status, created_at, updated_at
+                    current_owner_id, status, height_mm, base_width_mm,
+                    weight_g, material, scale, variant_label,
+                    created_at, updated_at
 
 provenance_events   id, piece_id, event_type, from_owner_id,
                     to_owner_id, notes, occurred_at
@@ -346,6 +348,23 @@ Before merging any branch, verify all of these still work:
 | Back link — direct NFC tap | `/[locale]/v/[uid]?t=<token>` (no `from`) | `back-link` is absent (customer scan path stays minimal) |
 | Back link — error states | Tamper or not-found panel | `back-link` is absent even if `from=gallery` is set |
 | Navigation RTL | `/ar/gallery` | breadcrumb separator flips to `‹` and `html` has `dir="rtl"` |
+| Physical specs — persistence | `POST /api/admin/pieces` with `height_mm`/`weight_g`/`material`/etc. then `GET /api/admin/pieces/[id]` | All six fields round-trip; empty values stored as `NULL`, not `0` or `""` |
+| Physical specs — conditional render | `/v/[uid]?t=<token>` for a piece with partial specs | Only rows whose value is non-null appear; piece with zero specs omits the section entirely |
+| Physical specs — variant badge | `/v/[uid]?t=<token>` with `variant_label='Taille L'` | Prominent variant badge renders near the character name; row also appears in the specs section |
+| Physical specs — PDF | `GET /api/admin/cards/[id]` for a piece with all specs filled | PDF text stream contains `HEIGHT`/`BASE`/`WEIGHT`/`MATERIAL`/`SCALE`/`VARIANT`; values like `120.5 mm`, `340.5 g` present; `SCULPT`/`PAINT`/`PIECE` still rendered; support email still anchored to the bottom |
+| Physical specs — PDF unchanged when empty | `GET /api/admin/cards/[id]` for a piece with no specs | No spec labels in the PDF text; back layout matches pre-Phase-5-prep design |
+| Physical specs — zod | `POST /api/admin/pieces` with `height_mm=-1` or `material` longer than 80 chars | 400 `validation_error` with `fields.height_mm` / `fields.material` populated |
+| Physical specs — RTL | `/ar/v/[uid]?t=<token>` for a piece with specs | `verification-specs` section renders and `html[dir="rtl"]` is set |
+| Legal — pages render | `GET /[locale]/legal/{mentions,privacy,terms}` in en/fr/ar | 200 + `legal-page-<slug>` testid visible + at least one `legal-section-*` rendered |
+| Legal — last-updated | Any legal page | `legal-last-updated` testid renders the date in the locale's long-form (e.g. "May 15, 2026" / "15 mai 2026") |
+| Legal — mentions disclosure | `/en/legal/mentions` HTML | Contains "Seàn McGannon", "Essaouira", "Vercel Inc.", "Supabase Inc.", "contact@nachi3d.com" |
+| Legal — privacy GDPR | `/en/legal/privacy` HTML | Contains "verification_logs", "GDPR", "legitimate interest", "erasure" — the GDPR audit hits |
+| Legal — terms governing law | `/en/legal/terms` HTML | Contains "Morocco" and "as-is" |
+| Footer — public pages | `/[locale]`, `/[locale]/gallery`, `/[locale]/login`, `/[locale]/v/[uid]?t=<valid>` | `site-footer` testid renders below the main content |
+| Footer — admin pages | `/[locale]/admin/*` while signed in | `site-footer` testid renders below the page (admin shares the same chrome) |
+| Footer — absent on error states | `/v/[uid]?t=<bad>` (tamper) and `/v/<unknown>?t=…` (not-found) | `site-footer` is absent so error states stay minimal |
+| Footer — locale-correct links | Footer link `site-footer-link-privacy` on `/ar` | `href="/ar/legal/privacy"` (link prefix matches the active locale) |
+| Sitemap — legal | `GET /sitemap.xml` | Contains `/{en,fr,ar}/legal/{mentions,privacy,terms}` URLs alongside the existing landing + gallery + piece entries |
 | Data safety — env guard | `npm run db:seed` without `ALLOW_DESTRUCTIVE_SEED=1` | Loud `[seed-remote] … skipping prune` warning; no rows deleted; canonical fixtures upserted additively |
 | Data safety — fixture scope | `ALLOW_DESTRUCTIVE_SEED=1 npm run db:seed` against a DB carrying an `is_fixture=false` row | The non-fixture row survives; only non-canonical `is_fixture=true` rows are deleted |
 | Data safety — admin API | POST/PATCH `/api/admin/pieces` with `is_fixture: true` in the body | Returned row has `is_fixture: false`; zod strips the field, server never reads it |
@@ -397,14 +416,14 @@ a back link, sitting above the page `<h1>`:
 | Route | Purpose | Auth |
 |---|---|---|
 | `/[locale]` | Landing page (Nachi3D Certify intro) | Public |
-| `/[locale]/v/[uid]` | Public verification page (Phase 5-prep adds a conditional `← Back to gallery` link when `?from=gallery`) | Public |
+| `/[locale]/v/[uid]` | Public verification page; renders the optional physical-specs section after the provenance timeline and a prominent variant badge near the character name (Phase 5-prep) | Public |
 | `/[locale]/gallery` | Public gallery of published pieces (Phase 4); cards link with `?from=gallery` so verification shows a back link | Public |
 | `/[locale]/login` | Admin email + password sign-in (Phase 5-prep) | Public |
 | `/[locale]/me` | Owner dashboard (Phase 5) | Logged in |
 | `/[locale]/admin` | Admin home | Admin only |
 | `/[locale]/admin/pieces` | Paginated list with status filter + gallery badge (Phase 2 + 4) | Admin only |
-| `/[locale]/admin/pieces/new` | Register piece (Phase 2) | Admin only |
-| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout + gallery toggle + danger zone hard-delete (Phase 2 + 4 + 5-prep) | Admin only |
+| `/[locale]/admin/pieces/new` | Register piece — includes optional physical-characteristics section (height/base/weight/material/scale/variant) (Phase 2 + 5-prep) | Admin only |
+| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout + gallery toggle + physical-characteristics section + danger zone hard-delete (Phase 2 + 4 + 5-prep) | Admin only |
 | `/[locale]/admin/analytics` | Analytics (Phase 6) | Admin only |
 | `/[locale]/admin/flags` | Fraud flags (Phase 6) | Admin only |
 | `/[locale]/api/gallery` | Gallery pagination JSON (Phase 4) | Public |
@@ -417,6 +436,9 @@ a back link, sitting above the page `<h1>`:
 | `/sitemap.xml` | Sitemap covering landing + gallery + every published piece's /v/[uid] (Phase 4) | Public |
 | `/robots.txt` | Robots policy; disallows /admin + /api; declares sitemap (Phase 4) | Public |
 | `/[locale]/claim/coming-soon` | Placeholder for the Phase 5 claim flow | Public |
+| `/[locale]/legal/mentions` | Mentions légales / legal notice (Phase 5-prep) | Public |
+| `/[locale]/legal/privacy` | Privacy policy / GDPR disclosure (Phase 5-prep) | Public |
+| `/[locale]/legal/terms` | Terms of use (Phase 5-prep) | Public |
 | `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
 
 ## Security operations
@@ -541,6 +563,56 @@ When to rotate:
 - Test fixtures use distinctive `test-*-do-not-use` passwords; production
   admins are created via the Supabase dashboard
 - `/api/test/signin` remains gated by `E2E_TEST_LOGIN_ENABLED` (off in prod)
+
+### Phase 5-prep — Legal pages + global footer
+- Three trilingual public pages under `/[locale]/legal/`:
+  `mentions` (mentions légales / legal notice), `privacy`
+  (GDPR-compliant privacy policy covering `verification_logs`), and
+  `terms` (terms of use governed by Moroccan law).
+- Content lives in `i18n/{en,fr,ar}.json` under `legal.*` as a
+  `{ title, intro, sections: [{ title, paragraphs[] }] }` shape so the
+  same `LegalPage` component renders all three with `.map()`. Each
+  page hardcodes a `LAST_UPDATED` const at the top and formats it via
+  `Intl.DateTimeFormat` for the active locale.
+- A `// LEGAL: reviewed and adapted by Seàn McGannon; consult a
+  lawyer before scaling to high-volume sales.` comment lives at the
+  top of every legal page file so the operator-review boundary is
+  impossible to miss.
+- Contact email used across all three pages: `contact@nachi3d.com`.
+- `components/ui/SiteFooter.tsx` is a server component carrying the
+  three legal links + `© Nachi3D <year>`. Rendered on landing,
+  gallery, verification happy-path, login, all admin pages, and the
+  three legal pages themselves. Intentionally absent on tamper +
+  not-found panels so error states stay minimal.
+- Sitemap entries for the nine legal URLs (3 pages × 3 locales) ship
+  with `changeFrequency: yearly` + low priority — they're disclosure,
+  not marketing.
+- No cookie banner: auth cookies are strictly necessary and exempt;
+  no tracking, analytics or third-party cookies exist to consent to.
+
+### Phase 5-prep — Physical characteristics fields
+- Six new optional columns on `pieces`: `height_mm` / `base_width_mm` /
+  `weight_g` (numeric, mm and g — no inch/oz conversion) and `material` /
+  `scale` / `variant_label` (free text; app-layer max-length 80/40/60).
+  All nullable, no default — existing pieces simply have no specs.
+- Admin form `/admin/pieces/new` + `/admin/pieces/[id]/edit` exposes a
+  "Caractéristiques physiques" section (3 number inputs step 0.1 + 3 text
+  inputs); zod (`lib/validation/piece.ts`) coerces empty inputs to `NULL`
+  and rejects negatives / over-length text.
+- Public verification page renders a `verification-specs` block after
+  the provenance timeline, with only the non-null rows visible. If zero
+  specs are set, the section is omitted entirely (no empty header, no
+  layout shift). `variant_label` also surfaces as a prominent badge next
+  to the character name so collectors spot it without scrolling.
+- Card PDF (`lib/pdf/card-generator.ts`) renders a compact 3-column spec
+  grid on the back, after the existing SCULPT/PAINT/EDITION/PIECE block.
+  Same conditional behaviour — no specs filled means the card matches
+  the pre-Phase-5-prep design byte-for-byte.
+- **Post-deploy step:** `npm run purge:cards` must be run after this
+  ships so already-cached PDFs regenerate with the new layout. The
+  invalidation hook in `updatePiece()` only clears cards whose row was
+  re-saved; existing rows untouched by the migration would otherwise
+  keep serving the old PDF from the `cards` bucket.
 
 ### Phase 5-prep — Hard-delete piece
 - Danger zone on `/admin/pieces/[id]/edit` with typed-confirmation modal

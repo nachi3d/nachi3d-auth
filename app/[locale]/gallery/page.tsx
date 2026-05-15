@@ -12,6 +12,7 @@ import {
 } from "@/lib/server/gallery";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 
 // Pages are cached at the edge for 1 hour; cards don't change minute by
 // minute, and an admin flipping show_in_gallery is fine to surface on
@@ -101,6 +102,7 @@ export default async function GalleryPage({
   } satisfies Record<(typeof LICENSE_STATUSES)[number], string>;
 
   return (
+    <>
     <main
       className="brand-atmosphere mx-auto max-w-6xl px-6 py-16"
       data-testid="gallery-page"
@@ -166,5 +168,7 @@ export default async function GalleryPage({
         />
       )}
     </main>
+    <SiteFooter locale={locale} />
+    </>
   );
 }

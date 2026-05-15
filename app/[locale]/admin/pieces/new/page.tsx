@@ -26,8 +26,15 @@ export default async function NewPiecePage({ params }: PageProps) {
   const tLicense = await getTranslations("admin.pieces.license");
   const tPhotos = await getTranslations("admin.pieces.photos");
   const tErrors = await getTranslations("admin.pieces.errors");
+  const tSpecs = await getTranslations("admin.pieces.specs");
 
-  const labels = buildPieceFormLabels(tForm, tLicense, tPhotos, tErrors);
+  const labels = buildPieceFormLabels(
+    tForm,
+    tLicense,
+    tPhotos,
+    tErrors,
+    tSpecs,
+  );
   const defaultPieceNumber = await nextPieceNumber();
 
   return (
