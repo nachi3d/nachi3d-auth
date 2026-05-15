@@ -355,6 +355,16 @@ Before merging any branch, verify all of these still work:
 | Physical specs — PDF unchanged when empty | `GET /api/admin/cards/[id]` for a piece with no specs | No spec labels in the PDF text; back layout matches pre-Phase-5-prep design |
 | Physical specs — zod | `POST /api/admin/pieces` with `height_mm=-1` or `material` longer than 80 chars | 400 `validation_error` with `fields.height_mm` / `fields.material` populated |
 | Physical specs — RTL | `/ar/v/[uid]?t=<token>` for a piece with specs | `verification-specs` section renders and `html[dir="rtl"]` is set |
+| Legal — pages render | `GET /[locale]/legal/{mentions,privacy,terms}` in en/fr/ar | 200 + `legal-page-<slug>` testid visible + at least one `legal-section-*` rendered |
+| Legal — last-updated | Any legal page | `legal-last-updated` testid renders the date in the locale's long-form (e.g. "May 15, 2026" / "15 mai 2026") |
+| Legal — mentions disclosure | `/en/legal/mentions` HTML | Contains "Seàn McGannon", "Essaouira", "Vercel Inc.", "Supabase Inc.", "contact@nachi3dlabs.com" |
+| Legal — privacy GDPR | `/en/legal/privacy` HTML | Contains "verification_logs", "GDPR", "legitimate interest", "erasure" — the GDPR audit hits |
+| Legal — terms governing law | `/en/legal/terms` HTML | Contains "Morocco" and "as-is" |
+| Footer — public pages | `/[locale]`, `/[locale]/gallery`, `/[locale]/login`, `/[locale]/v/[uid]?t=<valid>` | `site-footer` testid renders below the main content |
+| Footer — admin pages | `/[locale]/admin/*` while signed in | `site-footer` testid renders below the page (admin shares the same chrome) |
+| Footer — absent on error states | `/v/[uid]?t=<bad>` (tamper) and `/v/<unknown>?t=…` (not-found) | `site-footer` is absent so error states stay minimal |
+| Footer — locale-correct links | Footer link `site-footer-link-privacy` on `/ar` | `href="/ar/legal/privacy"` (link prefix matches the active locale) |
+| Sitemap — legal | `GET /sitemap.xml` | Contains `/{en,fr,ar}/legal/{mentions,privacy,terms}` URLs alongside the existing landing + gallery + piece entries |
 | Data safety — env guard | `npm run db:seed` without `ALLOW_DESTRUCTIVE_SEED=1` | Loud `[seed-remote] … skipping prune` warning; no rows deleted; canonical fixtures upserted additively |
 | Data safety — fixture scope | `ALLOW_DESTRUCTIVE_SEED=1 npm run db:seed` against a DB carrying an `is_fixture=false` row | The non-fixture row survives; only non-canonical `is_fixture=true` rows are deleted |
 | Data safety — admin API | POST/PATCH `/api/admin/pieces` with `is_fixture: true` in the body | Returned row has `is_fixture: false`; zod strips the field, server never reads it |
@@ -426,6 +436,9 @@ a back link, sitting above the page `<h1>`:
 | `/sitemap.xml` | Sitemap covering landing + gallery + every published piece's /v/[uid] (Phase 4) | Public |
 | `/robots.txt` | Robots policy; disallows /admin + /api; declares sitemap (Phase 4) | Public |
 | `/[locale]/claim/coming-soon` | Placeholder for the Phase 5 claim flow | Public |
+| `/[locale]/legal/mentions` | Mentions légales / legal notice (Phase 5-prep) | Public |
+| `/[locale]/legal/privacy` | Privacy policy / GDPR disclosure (Phase 5-prep) | Public |
+| `/[locale]/legal/terms` | Terms of use (Phase 5-prep) | Public |
 | `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
 
 ## Security operations
@@ -550,6 +563,30 @@ When to rotate:
 - Test fixtures use distinctive `test-*-do-not-use` passwords; production
   admins are created via the Supabase dashboard
 - `/api/test/signin` remains gated by `E2E_TEST_LOGIN_ENABLED` (off in prod)
+
+### Phase 5-prep — Legal pages + global footer
+- Three trilingual public pages under `/[locale]/legal/`:
+  `mentions` (mentions légales / legal notice), `privacy`
+  (GDPR-compliant privacy policy covering `verification_logs`), and
+  `terms` (terms of use governed by Moroccan law).
+- Content lives in `i18n/{en,fr,ar}.json` under `legal.*` as a
+  `{ title, intro, sections: [{ title, paragraphs[] }] }` shape so the
+  same `LegalPage` component renders all three with `.map()`. Each
+  page hardcodes a `LAST_UPDATED` const at the top and formats it via
+  `Intl.DateTimeFormat` for the active locale.
+- A `LEGAL: …` and `LEGAL TODO: confirm the operator's preferred
+  contact email` comment lives at the top of every legal page file so
+  the operator-review boundary is impossible to miss.
+- `components/ui/SiteFooter.tsx` is a server component carrying the
+  three legal links + `© Nachi3D <year>`. Rendered on landing,
+  gallery, verification happy-path, login, all admin pages, and the
+  three legal pages themselves. Intentionally absent on tamper +
+  not-found panels so error states stay minimal.
+- Sitemap entries for the nine legal URLs (3 pages × 3 locales) ship
+  with `changeFrequency: yearly` + low priority — they're disclosure,
+  not marketing.
+- No cookie banner: auth cookies are strictly necessary and exempt;
+  no tracking, analytics or third-party cookies exist to consent to.
 
 ### Phase 5-prep — Physical characteristics fields
 - Six new optional columns on `pieces`: `height_mm` / `base_width_mm` /
