@@ -69,6 +69,18 @@
       "title": "Vous possédez cette pièce ?",
       "body": "Revendiquez-la sur votre compte Nachi3D pour apparaître comme propriétaire lors des futurs scans et la transférer proprement en cas de revente.",
       "buttonLabel": "Revendiquer cette pièce"
+    },
+    "variantBadge": "Variante",
+    "specs": {
+      "sectionTitle": "Caractéristiques",
+      "height": "Hauteur",
+      "base_width": "Largeur de socle",
+      "weight": "Poids",
+      "material": "Matériau",
+      "scale": "Échelle",
+      "variant": "Variante",
+      "mm": "mm",
+      "g": "g"
     }
   },
   "claim": {
@@ -147,6 +159,20 @@
       "errors": {
         "title": "Impossible d'enregistrer",
         "fallback": "Vérifiez les champs en surbrillance."
+      },
+      "specs": {
+        "sectionTitle": "Caractéristiques physiques",
+        "optional": "Optionnel",
+        "height": "Hauteur (mm)",
+        "base_width": "Largeur de socle (mm)",
+        "weight": "Poids (g)",
+        "material": "Matériau",
+        "materialPlaceholder": "ex. Résine 8K + socle bois",
+        "scale": "Échelle",
+        "scalePlaceholder": "ex. 75mm ou 1/12",
+        "variant": "Variante",
+        "variantPlaceholder": "ex. Taille L",
+        "variantHint": "Pour les modèles déclinés en plusieurs tailles (ex : Raze S/M/L)."
       },
       "danger": {
         "sectionTitle": "Zone dangereuse",

@@ -69,6 +69,18 @@
       "title": "هل تمتلك هذه القطعة؟",
       "body": "اطلب ملكيتها من حساب Nachi3D ليظهر اسمك مالكًا في عمليات التحقق المستقبلية، وحتى تتمكّن من نقلها بشكل سليم إن قمت بإعادة بيعها لاحقًا.",
       "buttonLabel": "طلب ملكية هذه القطعة"
+    },
+    "variantBadge": "نسخة",
+    "specs": {
+      "sectionTitle": "المواصفات",
+      "height": "الارتفاع",
+      "base_width": "عرض القاعدة",
+      "weight": "الوزن",
+      "material": "الخامة",
+      "scale": "المقياس",
+      "variant": "النسخة",
+      "mm": "مم",
+      "g": "غ"
     }
   },
   "claim": {
@@ -147,6 +159,20 @@
       "errors": {
         "title": "تعذّر الحفظ",
         "fallback": "راجع الحقول المظلَّلة."
+      },
+      "specs": {
+        "sectionTitle": "المواصفات الفيزيائية",
+        "optional": "اختياري",
+        "height": "الارتفاع (مم)",
+        "base_width": "عرض القاعدة (مم)",
+        "weight": "الوزن (غ)",
+        "material": "الخامة",
+        "materialPlaceholder": "مثال: راتنج 8K + قاعدة خشبية",
+        "scale": "المقياس",
+        "scalePlaceholder": "مثال: 75 مم أو 1/12",
+        "variant": "النسخة",
+        "variantPlaceholder": "مثال: حجم L",
+        "variantHint": "للتصاميم المتوفرة بعدة أحجام (مثل Raze S/M/L)."
       },
       "danger": {
         "sectionTitle": "منطقة خطرة",

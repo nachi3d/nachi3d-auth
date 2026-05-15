@@ -33,6 +33,20 @@ export interface PieceFormLabels {
   uidLockedHint: string;
   show_in_gallery: string;
   showInGalleryHint: string;
+  specs: {
+    sectionTitle: string;
+    optional: string;
+    height: string;
+    base_width: string;
+    weight: string;
+    material: string;
+    materialPlaceholder: string;
+    scale: string;
+    scalePlaceholder: string;
+    variant: string;
+    variantPlaceholder: string;
+    variantHint: string;
+  };
   licenseOptions: Record<(typeof LICENSE_STATUSES)[number], string>;
   photoLabels: {
     addPhotos: string;
@@ -67,6 +81,12 @@ interface PieceFormProps {
     photos?: string[];
     status?: (typeof PIECE_STATUSES)[number];
     show_in_gallery?: boolean;
+    height_mm?: number | null;
+    base_width_mm?: number | null;
+    weight_g?: number | null;
+    material?: string | null;
+    scale?: string | null;
+    variant_label?: string | null;
   };
   defaultPieceNumber: number;
   labels: PieceFormLabels;
@@ -280,6 +300,83 @@ export function PieceForm({
         />
       </fieldset>
 
+      <fieldset
+        className="grid gap-6"
+        data-testid="piece-specs-fieldset"
+      >
+        <legend className="mb-2 text-xs uppercase tracking-[0.2em] text-dark-text-200">
+          {labels.specs.sectionTitle}
+        </legend>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Field
+            label={labels.specs.height}
+            name="height_mm"
+            type="number"
+            step="0.1"
+            min={0}
+            defaultValue={nullToEmpty(initial.height_mm ?? null)}
+            optionalBadge={labels.specs.optional}
+            errors={fieldErrors.height_mm}
+            testid="field-height_mm"
+          />
+          <Field
+            label={labels.specs.base_width}
+            name="base_width_mm"
+            type="number"
+            step="0.1"
+            min={0}
+            defaultValue={nullToEmpty(initial.base_width_mm ?? null)}
+            optionalBadge={labels.specs.optional}
+            errors={fieldErrors.base_width_mm}
+            testid="field-base_width_mm"
+          />
+          <Field
+            label={labels.specs.weight}
+            name="weight_g"
+            type="number"
+            step="0.1"
+            min={0}
+            defaultValue={nullToEmpty(initial.weight_g ?? null)}
+            optionalBadge={labels.specs.optional}
+            errors={fieldErrors.weight_g}
+            testid="field-weight_g"
+          />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Field
+            label={labels.specs.material}
+            name="material"
+            defaultValue={initial.material ?? ""}
+            placeholder={labels.specs.materialPlaceholder}
+            maxLength={80}
+            optionalBadge={labels.specs.optional}
+            errors={fieldErrors.material}
+            testid="field-material"
+          />
+          <Field
+            label={labels.specs.scale}
+            name="scale"
+            defaultValue={initial.scale ?? ""}
+            placeholder={labels.specs.scalePlaceholder}
+            maxLength={40}
+            optionalBadge={labels.specs.optional}
+            errors={fieldErrors.scale}
+            testid="field-scale"
+          />
+        </div>
+        <Field
+          label={labels.specs.variant}
+          name="variant_label"
+          defaultValue={initial.variant_label ?? ""}
+          placeholder={labels.specs.variantPlaceholder}
+          maxLength={60}
+          optionalBadge={labels.specs.optional}
+          hint={labels.specs.variantHint}
+          errors={fieldErrors.variant_label}
+          testid="field-variant_label"
+        />
+      </fieldset>
+
       <fieldset className="grid gap-3">
         <label className="flex items-start gap-3 rounded-sm border border-dark-700 bg-dark-800/40 px-4 py-3">
           <input
@@ -351,7 +448,11 @@ interface FieldProps {
   required?: boolean;
   disabled?: boolean;
   min?: number;
+  step?: number | string;
+  maxLength?: number;
+  placeholder?: string;
   hint?: string;
+  optionalBadge?: string;
   errors?: string[];
   testid?: string;
   autoCapitalize?: string;
@@ -365,16 +466,27 @@ function Field({
   required,
   disabled,
   min,
+  step,
+  maxLength,
+  placeholder,
   hint,
+  optionalBadge,
   errors,
   testid,
   autoCapitalize,
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs uppercase tracking-[0.2em] text-dark-text-200">
-        {label}
-        {required ? " *" : ""}
+      <span className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-dark-text-200">
+        <span>
+          {label}
+          {required ? " *" : ""}
+        </span>
+        {optionalBadge ? (
+          <span className="rounded-sm border border-dark-700 px-1.5 py-0.5 text-[10px] font-normal normal-case tracking-normal text-dark-text-200">
+            {optionalBadge}
+          </span>
+        ) : null}
       </span>
       <input
         name={name}
@@ -383,6 +495,9 @@ function Field({
         required={required}
         disabled={disabled}
         min={min}
+        step={step}
+        maxLength={maxLength}
+        placeholder={placeholder}
         autoCapitalize={autoCapitalize}
         data-testid={testid}
         className="w-full rounded-sm border border-dark-700 bg-dark-800 px-3 py-2 text-dark-text-100 outline-none transition focus:border-primary-500 disabled:cursor-not-allowed disabled:bg-dark-900 disabled:text-dark-text-200"

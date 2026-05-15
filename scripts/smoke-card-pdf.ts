@@ -48,6 +48,12 @@ const piece = {
   character_quote: "Authenticity is what you carry, not what you claim.",
   sculpt_date: "2026-04-01",
   paint_date: "2026-04-15",
+  height_mm: null,
+  base_width_mm: null,
+  weight_g: null,
+  material: null,
+  scale: null,
+  variant_label: null,
 };
 
 const notices = {

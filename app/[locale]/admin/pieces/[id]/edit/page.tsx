@@ -37,8 +37,15 @@ export default async function EditPiecePage({
   const tErrors = await getTranslations("admin.pieces.errors");
   const tNfc = await getTranslations("admin.pieces.nfc");
   const tDanger = await getTranslations("admin.pieces.danger");
+  const tSpecs = await getTranslations("admin.pieces.specs");
 
-  const labels = buildPieceFormLabels(tForm, tLicense, tPhotos, tErrors);
+  const labels = buildPieceFormLabels(
+    tForm,
+    tLicense,
+    tPhotos,
+    tErrors,
+    tSpecs,
+  );
   const paddedNumber = String(piece.piece_number).padStart(4, "0");
   const dangerLabels = {
     sectionTitle: tDanger("sectionTitle"),

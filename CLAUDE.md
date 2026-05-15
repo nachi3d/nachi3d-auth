@@ -234,7 +234,9 @@ pieces              id, piece_number (unique), edition_number,
                     edition_total, nfc_uid (unique), verification_token,
                     character_name, character_quote, license_status,
                     license_notes, sculpt_date, paint_date, photos[],
-                    current_owner_id, status, created_at, updated_at
+                    current_owner_id, status, height_mm, base_width_mm,
+                    weight_g, material, scale, variant_label,
+                    created_at, updated_at
 
 provenance_events   id, piece_id, event_type, from_owner_id,
                     to_owner_id, notes, occurred_at
@@ -346,6 +348,13 @@ Before merging any branch, verify all of these still work:
 | Back link — direct NFC tap | `/[locale]/v/[uid]?t=<token>` (no `from`) | `back-link` is absent (customer scan path stays minimal) |
 | Back link — error states | Tamper or not-found panel | `back-link` is absent even if `from=gallery` is set |
 | Navigation RTL | `/ar/gallery` | breadcrumb separator flips to `‹` and `html` has `dir="rtl"` |
+| Physical specs — persistence | `POST /api/admin/pieces` with `height_mm`/`weight_g`/`material`/etc. then `GET /api/admin/pieces/[id]` | All six fields round-trip; empty values stored as `NULL`, not `0` or `""` |
+| Physical specs — conditional render | `/v/[uid]?t=<token>` for a piece with partial specs | Only rows whose value is non-null appear; piece with zero specs omits the section entirely |
+| Physical specs — variant badge | `/v/[uid]?t=<token>` with `variant_label='Taille L'` | Prominent variant badge renders near the character name; row also appears in the specs section |
+| Physical specs — PDF | `GET /api/admin/cards/[id]` for a piece with all specs filled | PDF text stream contains `HEIGHT`/`BASE`/`WEIGHT`/`MATERIAL`/`SCALE`/`VARIANT`; values like `120.5 mm`, `340.5 g` present; `SCULPT`/`PAINT`/`PIECE` still rendered; support email still anchored to the bottom |
+| Physical specs — PDF unchanged when empty | `GET /api/admin/cards/[id]` for a piece with no specs | No spec labels in the PDF text; back layout matches pre-Phase-5-prep design |
+| Physical specs — zod | `POST /api/admin/pieces` with `height_mm=-1` or `material` longer than 80 chars | 400 `validation_error` with `fields.height_mm` / `fields.material` populated |
+| Physical specs — RTL | `/ar/v/[uid]?t=<token>` for a piece with specs | `verification-specs` section renders and `html[dir="rtl"]` is set |
 | Data safety — env guard | `npm run db:seed` without `ALLOW_DESTRUCTIVE_SEED=1` | Loud `[seed-remote] … skipping prune` warning; no rows deleted; canonical fixtures upserted additively |
 | Data safety — fixture scope | `ALLOW_DESTRUCTIVE_SEED=1 npm run db:seed` against a DB carrying an `is_fixture=false` row | The non-fixture row survives; only non-canonical `is_fixture=true` rows are deleted |
 | Data safety — admin API | POST/PATCH `/api/admin/pieces` with `is_fixture: true` in the body | Returned row has `is_fixture: false`; zod strips the field, server never reads it |
@@ -397,14 +406,14 @@ a back link, sitting above the page `<h1>`:
 | Route | Purpose | Auth |
 |---|---|---|
 | `/[locale]` | Landing page (Nachi3D Certify intro) | Public |
-| `/[locale]/v/[uid]` | Public verification page (Phase 5-prep adds a conditional `← Back to gallery` link when `?from=gallery`) | Public |
+| `/[locale]/v/[uid]` | Public verification page; renders the optional physical-specs section after the provenance timeline and a prominent variant badge near the character name (Phase 5-prep) | Public |
 | `/[locale]/gallery` | Public gallery of published pieces (Phase 4); cards link with `?from=gallery` so verification shows a back link | Public |
 | `/[locale]/login` | Admin email + password sign-in (Phase 5-prep) | Public |
 | `/[locale]/me` | Owner dashboard (Phase 5) | Logged in |
 | `/[locale]/admin` | Admin home | Admin only |
 | `/[locale]/admin/pieces` | Paginated list with status filter + gallery badge (Phase 2 + 4) | Admin only |
-| `/[locale]/admin/pieces/new` | Register piece (Phase 2) | Admin only |
-| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout + gallery toggle + danger zone hard-delete (Phase 2 + 4 + 5-prep) | Admin only |
+| `/[locale]/admin/pieces/new` | Register piece — includes optional physical-characteristics section (height/base/weight/material/scale/variant) (Phase 2 + 5-prep) | Admin only |
+| `/[locale]/admin/pieces/[id]/edit` | Edit piece + verification URL callout + gallery toggle + physical-characteristics section + danger zone hard-delete (Phase 2 + 4 + 5-prep) | Admin only |
 | `/[locale]/admin/analytics` | Analytics (Phase 6) | Admin only |
 | `/[locale]/admin/flags` | Fraud flags (Phase 6) | Admin only |
 | `/[locale]/api/gallery` | Gallery pagination JSON (Phase 4) | Public |
@@ -541,6 +550,30 @@ When to rotate:
 - Test fixtures use distinctive `test-*-do-not-use` passwords; production
   admins are created via the Supabase dashboard
 - `/api/test/signin` remains gated by `E2E_TEST_LOGIN_ENABLED` (off in prod)
+
+### Phase 5-prep — Physical characteristics fields
+- Six new optional columns on `pieces`: `height_mm` / `base_width_mm` /
+  `weight_g` (numeric, mm and g — no inch/oz conversion) and `material` /
+  `scale` / `variant_label` (free text; app-layer max-length 80/40/60).
+  All nullable, no default — existing pieces simply have no specs.
+- Admin form `/admin/pieces/new` + `/admin/pieces/[id]/edit` exposes a
+  "Caractéristiques physiques" section (3 number inputs step 0.1 + 3 text
+  inputs); zod (`lib/validation/piece.ts`) coerces empty inputs to `NULL`
+  and rejects negatives / over-length text.
+- Public verification page renders a `verification-specs` block after
+  the provenance timeline, with only the non-null rows visible. If zero
+  specs are set, the section is omitted entirely (no empty header, no
+  layout shift). `variant_label` also surfaces as a prominent badge next
+  to the character name so collectors spot it without scrolling.
+- Card PDF (`lib/pdf/card-generator.ts`) renders a compact 3-column spec
+  grid on the back, after the existing SCULPT/PAINT/EDITION/PIECE block.
+  Same conditional behaviour — no specs filled means the card matches
+  the pre-Phase-5-prep design byte-for-byte.
+- **Post-deploy step:** `npm run purge:cards` must be run after this
+  ships so already-cached PDFs regenerate with the new layout. The
+  invalidation hook in `updatePiece()` only clears cards whose row was
+  re-saved; existing rows untouched by the migration would otherwise
+  keep serving the old PDF from the `cards` bucket.
 
 ### Phase 5-prep — Hard-delete piece
 - Danger zone on `/admin/pieces/[id]/edit` with typed-confirmation modal
