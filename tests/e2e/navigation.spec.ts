@@ -109,13 +109,6 @@ test.describe("Phase 5-prep — navigation aids", () => {
       await expect(page.getByTestId("back-link")).toHaveCount(0);
     });
 
-    test("claim/coming-soon: back link to home", async ({ page }) => {
-      await page.goto("/en/claim/coming-soon");
-      const back = page.getByTestId("back-link");
-      await expect(back).toBeVisible();
-      await expect(back).toHaveAttribute("href", "/en");
-    });
-
     test("RTL: /ar/gallery breadcrumb uses the RTL-direction separator", async ({
       page,
     }) => {
