@@ -368,6 +368,26 @@ Before merging any branch, verify all of these still work:
 | Data safety — env guard | `npm run db:seed` without `ALLOW_DESTRUCTIVE_SEED=1` | Loud `[seed-remote] … skipping prune` warning; no rows deleted; canonical fixtures upserted additively |
 | Data safety — fixture scope | `ALLOW_DESTRUCTIVE_SEED=1 npm run db:seed` against a DB carrying an `is_fixture=false` row | The non-fixture row survives; only non-canonical `is_fixture=true` rows are deleted |
 | Data safety — admin API | POST/PATCH `/api/admin/pieces` with `is_fixture: true` in the body | Returned row has `is_fixture: false`; zod strips the field, server never reads it |
+| Claim — CTA on unclaimed `/v/[uid]` | Unclaimed published piece | `claim-cta` testid renders below the provenance/specs; `current_owner_id != null` hides it |
+| Claim — modal validation | Submit modal with empty email or country | Modal stays open, `claim-modal-error[data-error-code=validation]` visible |
+| Claim — happy path | Collector submits modal, magic-link callback finalizes | `claim_piece` RPC sets `pieces.current_owner_id`, inserts a `claimed` provenance event, marks `claims.consumed_at`; redirect lands on `/[locale]/me?claimed=1` with the piece in the owned grid |
+| Claim — double-claim race | Two parallel initiates + parallel finalizes for the same piece | The atomic `claim_piece(...)` lock yields exactly one success; the loser sees the friendly "already claimed" page |
+| Claim — expired link | GET `/[locale]/claim/<token>` where `claims.expires_at < now()` | Renders `claim-error` panel; the claimant can resubmit the modal to regenerate a fresh token |
+| Claim — RLS | Anonymous (anon key) `GET /rest/v1/claims` | Returns `200 []` — no claim row is ever readable from a role policy; service-role bypasses RLS for server-side reads |
+| Transfer — owner-only initiate | `POST /api/transfer/initiate` as a non-owner of the piece | 403 `not_owner`; no transfer row inserted |
+| Transfer — unauthenticated initiate | `POST /api/transfer/initiate` with no session | 401 `unauthenticated` |
+| Transfer — self-transfer guard | Owner submits transfer with `to_email = own email` | 400 `self_transfer`; no row inserted |
+| Transfer — duplicate-pending guard | Second `initiate` for a piece with a pending transfer already | 409 `pending_transfer_exists`; only one pending row per piece at a time |
+| Transfer — happy path | Owner initiates → recipient accepts via magic-link callback | `accept_transfer` RPC re-locks the piece, flips `pieces.current_owner_id`, inserts a `transferred` provenance event, marks the row `status='accepted'`; recipient lands on `/[locale]/me?transfer_accepted=1` |
+| Transfer — second accept is rejected | Reuse the same accept token after a successful accept | 409 `accepted`; ownership stays with the new owner |
+| Transfer — revoke before accept | Owner POST `/api/transfer/revoke { transfer_id }`, then recipient POST `/api/transfer/accept { token }` | Revoke succeeds (status `pending → revoked`); subsequent accept returns 409 `revoked` |
+| Transfer — expiry | Transfer with `expires_at < now()` is accepted | RPC returns `expired`; row is flipped to `status='expired'`; same outcome as the pg_cron daily job |
+| Transfer — pg_cron job | `select public.expire_pending_transfers_and_claims();` (or the daily 00:00 UTC cron) | Pending transfers past `expires_at` flip to `expired`; function is idempotent and safe to call on demand |
+| Transfer — RLS | Anonymous `GET /rest/v1/transfers?piece_id=eq.<id>` | Returns `200 []` — `transfers_select_own` requires the JWT's `sub` to match `from_owner_id`/`to_owner_id` or its email to match `to_email`, so anon never sees a row |
+| /me — unauthenticated redirect | `GET /[locale]/me` with no session | 307 redirect to `/[locale]/login` |
+| /me — owned grid | Signed-in collector who owns a piece | `me-owned-item` with `data-piece-id` testid visible; empty state hidden |
+| /me — profile editor persistence | Edit display_name + country, save | `me-banner[data-banner-code=profile_saved]` visible; reload preserves the new values |
+| /me — transfer history | Past transfers from/to the current user | `me-history-item` rows render with the correct `data-status`; "Revoke" button appears only on pending outgoing rows |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -419,7 +439,9 @@ a back link, sitting above the page `<h1>`:
 | `/[locale]/v/[uid]` | Public verification page; renders the optional physical-specs section after the provenance timeline and a prominent variant badge near the character name (Phase 5-prep) | Public |
 | `/[locale]/gallery` | Public gallery of published pieces (Phase 4); cards link with `?from=gallery` so verification shows a back link | Public |
 | `/[locale]/login` | Admin email + password sign-in (Phase 5-prep) | Public |
-| `/[locale]/me` | Owner dashboard (Phase 5) | Logged in |
+| `/[locale]/me` | Owner dashboard — owned grid + profile editor + transfer history (Phase 5) | Logged in |
+| `/[locale]/claim/[token]` | Claim handler — finalizes a magic-link claim and redirects to `/me?claimed=1` (Phase 5) | Logged in (session set by `/auth/callback`) |
+| `/[locale]/transfer/[token]` | Transfer handler — recipient preview + accept (Phase 5) | Logged in (recipient email must match) |
 | `/[locale]/admin` | Admin home | Admin only |
 | `/[locale]/admin/pieces` | Paginated list with status filter + gallery badge (Phase 2 + 4) | Admin only |
 | `/[locale]/admin/pieces/new` | Register piece — includes optional physical-characteristics section (height/base/weight/material/scale/variant) (Phase 2 + 5-prep) | Admin only |
@@ -433,9 +455,15 @@ a back link, sitting above the page `<h1>`:
 | `POST /api/admin/photos` | multipart upload to `piece-photos` bucket (Phase 2) | Admin only |
 | `DELETE /api/admin/photos` | Remove a photo from a piece + bucket (Phase 2) | Admin only |
 | `GET /api/admin/cards/[id]` | A6 PDF certificate, cached in `cards` bucket (Phase 3) | Admin only |
+| `POST /api/claim/initiate` | Create a `claims` row + dispatch the magic link via Supabase Auth (Phase 5) | Public — guarded by the verification URL |
+| `POST /api/transfer/initiate` | Owner-initiated transfer; creates a `transfers` row + sends the recipient a magic link (Phase 5) | Logged-in current owner |
+| `POST /api/transfer/accept` | Recipient confirms acceptance; calls `accept_transfer(...)` RPC (Phase 5) | Logged-in recipient |
+| `POST /api/transfer/revoke` | Owner cancels a pending transfer (Phase 5) | Logged-in `from_owner_id` |
+| `POST /[locale]/api/me/profile` | Authenticated self-update of `profiles.display_name` + `country` (Phase 5) | Logged in |
+| `POST /[locale]/api/me/signout` | Owner-facing logout — mirrors the admin logoutAction (Phase 5) | Logged in |
+| `GET /auth/callback?code=…&next=…` | Supabase Auth magic-link redirect target; exchanges OTP for cookie session and forwards to `next` (Phase 5) | Public |
 | `/sitemap.xml` | Sitemap covering landing + gallery + every published piece's /v/[uid] (Phase 4) | Public |
 | `/robots.txt` | Robots policy; disallows /admin + /api; declares sitemap (Phase 4) | Public |
-| `/[locale]/claim/coming-soon` | Placeholder for the Phase 5 claim flow | Public |
 | `/[locale]/legal/mentions` | Mentions légales / legal notice (Phase 5-prep) | Public |
 | `/[locale]/legal/privacy` | Privacy policy / GDPR disclosure (Phase 5-prep) | Public |
 | `/[locale]/legal/terms` | Terms of use (Phase 5-prep) | Public |
@@ -623,12 +651,33 @@ When to rotate:
   Owner-requested removals stay on `status='archived'` (see Hard-delete
   policy below)
 
-### Phase 5 — Owner claim + transfer
-- Magic-link claim flow via Resend + Supabase Auth
-- `/me` owner dashboard
-- Transfer flow (one-time tokens, recipient confirmation, revoke)
+### Phase 5 — Owner claim + transfer ✅
+- Magic-link claim flow via Supabase Auth + Brevo SMTP
+  (`sender noreply@nachi3dlabs.com`, DKIM+DMARC green)
+- `/me` owner dashboard: owned grid + profile editor + transfer history
+- Transfer flow: one-time 7-day tokens, recipient confirmation, owner revoke
+- New tables `claims` + `transfers` (see `20260518000000_phase5_claims_transfers.sql`)
+  with RLS that locks claims to service-role and scopes transfers to
+  the participating parties
+- Atomic SECURITY DEFINER functions `claim_piece(...)` and
+  `accept_transfer(...)` close the race window between read and update
+- `expire_pending_transfers_and_claims()` is called eagerly on every
+  `/me` page load and scheduled daily at 00:00 UTC via `pg_cron` when
+  the extension is enabled in the Supabase dashboard. If `pg_cron`
+  isn't installed, the migration logs a notice and the eager call is
+  the sole expiry path — no manual ops required
+- `/[locale]/claim/[token]` and `/[locale]/transfer/[token]` handler
+  pages render friendly error states for expired / mismatched-email /
+  already-claimed / revoked / ownership-changed
+- Customer trilingual emails handled by Supabase Auth's `Magic Link`
+  template; operator copy lives in `docs/supabase-email-templates.md`
+- E2E coverage in `tests/e2e/claim.spec.ts`, `tests/e2e/transfer.spec.ts`,
+  `tests/e2e/me.spec.ts`. The `/api/{claim,transfer}/initiate` routes
+  detect `E2E_TEST_LOGIN_ENABLED=1` and return the freshly-minted
+  token + next URL instead of dispatching a real magic-link email, so
+  tests drive the handler pages directly without burning email sends
 
-### Phase 6 — Analytics + fraud detection
+### Phase 6 — Analytics + fraud detection (next)
 - Admin analytics dashboard (counts, country heatmap, leaderboard)
 - Multi-country fraud flagging (cron)
 - Per-piece verification log view
@@ -722,6 +771,21 @@ rows explicitly marked as fixtures can be deleted.
 - Real operator pieces default to `false` at insert time — they are
   structurally unreachable by the seed prune even if Layer 1 is
   defeated.
+
+### Phase 5 tables follow the same is_fixture rule
+
+`claims.is_fixture` and `transfers.is_fixture` (both `boolean not null
+default false`) mirror the pieces convention. Real customer claims and
+transfers are inserted with `is_fixture = false` and the public/owner
+API never exposes the column — it's set only by the e2e test fixtures
+(`tests/e2e/fixtures/phase5.ts → markClaimFixture / markTransferFixture`)
+right after the row is created. The seed prune today scopes only
+`pieces`, but adding a `claims`/`transfers` prune later is one
+`.eq('is_fixture', true)` away because the contract already holds.
+
+ON DELETE CASCADE wires `claims.piece_id` and `transfers.piece_id` to
+`pieces.id`, so a hard-deleted piece takes its claim/transfer history
+with it. There is no separate cleanup ritual.
 
 ### Reserved `piece_number` ranges
 
