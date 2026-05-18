@@ -83,11 +83,13 @@ export async function POST(req: NextRequest) {
     note: input.note,
   });
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-    `http://localhost:${process.env.PORT ?? 3000}`;
+  // Derive the redirect base from the inbound request so a magic link
+  // dispatched from a Vercel preview deploy lands back on that same
+  // preview. Falling back to NEXT_PUBLIC_SITE_URL would pin every link
+  // to https://verify.nachi3dlabs.com and 404 on preview-only routes.
+  const origin = new URL(req.url).origin;
   const next = `/${input.locale}/transfer/${transfer.token}`;
-  const emailRedirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
+  const emailRedirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
   const sendMagicLink = process.env.E2E_TEST_LOGIN_ENABLED !== "1";
 
@@ -115,6 +117,8 @@ export async function POST(req: NextRequest) {
     ok: true,
     transfer_id: transfer.id,
     expires_in_days: 7,
-    ...(sendMagicLink ? {} : { token: transfer.token, next }),
+    ...(sendMagicLink
+      ? {}
+      : { token: transfer.token, next, email_redirect_to: emailRedirectTo }),
   });
 }

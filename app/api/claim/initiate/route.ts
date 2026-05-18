@@ -64,11 +64,13 @@ export async function POST(req: NextRequest) {
     country: input.country,
   });
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-    `http://localhost:${process.env.PORT ?? 3000}`;
+  // Derive the redirect base from the inbound request so a magic link
+  // dispatched from a Vercel preview deploy lands back on that same
+  // preview. Falling back to NEXT_PUBLIC_SITE_URL would pin every link
+  // to https://verify.nachi3dlabs.com and 404 on preview-only routes.
+  const origin = new URL(req.url).origin;
   const next = `/${input.locale}/claim/${claim.token}`;
-  const emailRedirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
+  const emailRedirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
   // In e2e mode we never send a real email. The Playwright spec
   // already has a session cookie for the collector fixture and posts
@@ -99,6 +101,10 @@ export async function POST(req: NextRequest) {
     // The token is returned ONLY in test mode so the spec can drive
     // the finalize endpoint without going through email. In prod the
     // token is only ever delivered via the magic-link redirect.
-    ...(sendMagicLink ? {} : { token: claim.token, next }),
+    // email_redirect_to is surfaced alongside it so the spec can
+    // assert the redirect host tracks the request, not NEXT_PUBLIC_SITE_URL.
+    ...(sendMagicLink
+      ? {}
+      : { token: claim.token, next, email_redirect_to: emailRedirectTo }),
   });
 }

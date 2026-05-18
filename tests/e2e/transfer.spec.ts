@@ -263,6 +263,46 @@ test.describe("Phase 5 — transfer flow", () => {
     }
   });
 
+  test("emailRedirectTo tracks the request origin, not NEXT_PUBLIC_SITE_URL", async ({
+    browser,
+    baseURL,
+  }) => {
+    // Regression for the Phase 5 magic-link bug: see the matching
+    // test in claim.spec.ts for the full motivation.
+    const colCtx = await browser.newContext({
+      storageState: COLLECTOR_STATE_PATH,
+      baseURL,
+    });
+    try {
+      const r = await colCtx.request.post("/api/transfer/initiate", {
+        data: {
+          piece_id: SEED_PIECE_ID,
+          to_email: SEED_ADMIN.email,
+          locale: "en",
+        },
+      });
+      expect(r.ok()).toBeTruthy();
+      const body = (await r.json()) as {
+        transfer_id: string;
+        email_redirect_to?: string;
+      };
+      await markTransferFixture(body.transfer_id);
+      expect(body.email_redirect_to).toBeTruthy();
+      const redirect = new URL(body.email_redirect_to!);
+      const requestHost = new URL(baseURL!).host;
+      expect(redirect.host).toBe(requestHost);
+      const siteUrlEnv = process.env.NEXT_PUBLIC_SITE_URL;
+      if (siteUrlEnv) {
+        const envHost = new URL(siteUrlEnv).host;
+        if (envHost !== requestHost) {
+          expect(redirect.host).not.toBe(envHost);
+        }
+      }
+    } finally {
+      await colCtx.close();
+    }
+  });
+
   test("RLS — non-owner cannot read transfers via REST", async ({
     browser,
     baseURL,

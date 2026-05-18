@@ -180,6 +180,50 @@ test.describe("Phase 5 — claim flow", () => {
     }
   });
 
+  test("emailRedirectTo tracks the request origin, not NEXT_PUBLIC_SITE_URL", async ({
+    browser,
+    baseURL,
+  }) => {
+    // Regression for the Phase 5 magic-link bug: links dispatched from
+    // a Vercel preview deploy were redirecting to prod (which doesn't
+    // have the Phase 5 routes) because emailRedirectTo was hardcoded
+    // to NEXT_PUBLIC_SITE_URL. The fix derives the origin from the
+    // inbound request URL.
+    await clean(SEED_PIECE_ID);
+    const colCtx = await browser.newContext({
+      storageState: COLLECTOR_STATE_PATH,
+      baseURL,
+    });
+    try {
+      const res = await colCtx.request.post("/api/claim/initiate", {
+        data: {
+          piece_id: SEED_PIECE_ID,
+          email: COLLECTOR_EMAIL,
+          display_name: "Origin Tester",
+          country: "FR",
+          locale: "en",
+        },
+      });
+      expect(res.ok()).toBeTruthy();
+      const body = (await res.json()) as { email_redirect_to?: string };
+      expect(body.email_redirect_to).toBeTruthy();
+      const redirect = new URL(body.email_redirect_to!);
+      const requestHost = new URL(baseURL!).host;
+      expect(redirect.host).toBe(requestHost);
+      // Sanity: when NEXT_PUBLIC_SITE_URL differs from the request
+      // host, the redirect must follow the request — not the env var.
+      const siteUrlEnv = process.env.NEXT_PUBLIC_SITE_URL;
+      if (siteUrlEnv) {
+        const envHost = new URL(siteUrlEnv).host;
+        if (envHost !== requestHost) {
+          expect(redirect.host).not.toBe(envHost);
+        }
+      }
+    } finally {
+      await colCtx.close();
+    }
+  });
+
   test("RLS — anonymous and authenticated users cannot read claims", async () => {
     // Anonymous (no auth header) — the anon role inherits whatever
     // policies are configured for SELECT, and we registered none.
