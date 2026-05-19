@@ -322,24 +322,34 @@ export async function seedRemote(): Promise<void> {
     // idempotent — a missing object errors, which we deliberately
     // swallow because "nothing cached" is a success state.
     await sb.storage.from("cards").remove([`${p.id}.pdf`]);
-  }
 
-  // provenance_events has no natural unique key for "created" — only
-  // insert one if there's no row for this piece yet, so re-runs don't pile up.
-  const { count } = await sb
-    .from("provenance_events")
-    .select("id", { count: "exact", head: true })
-    .eq("piece_id", SEED_PIECE_ID);
-  if ((count ?? 0) === 0) {
-    const { error: provErr } = await sb.from("provenance_events").insert({
-      piece_id: SEED_PIECE_ID,
-      event_type: "created",
-      notes: "Initial registration (seed data).",
-    });
-    if (provErr) {
-      throw new Error(
-        `seed-remote: failed to insert provenance event: ${provErr.message}`,
-      );
+    // provenance_events has no natural unique key for "created" — only
+    // insert one if this piece doesn't already have a 'created' row, so
+    // re-runs don't pile up. Anchor occurred_at to pieces.created_at so
+    // re-seeding an already-claimed piece doesn't reorder the timeline.
+    const { count: createdCount } = await sb
+      .from("provenance_events")
+      .select("id", { count: "exact", head: true })
+      .eq("piece_id", p.id)
+      .eq("event_type", "created");
+    if ((createdCount ?? 0) === 0) {
+      const { data: pieceRow } = await sb
+        .from("pieces")
+        .select("created_at")
+        .eq("id", p.id)
+        .maybeSingle();
+      const { error: provErr } = await sb.from("provenance_events").insert({
+        piece_id: p.id,
+        event_type: "created",
+        notes: "Initial registration (seed data).",
+        ...(pieceRow?.created_at ? { occurred_at: pieceRow.created_at } : {}),
+      });
+      if (provErr) {
+        throw new Error(
+          `seed-remote: failed to insert 'created' provenance event ` +
+            `for ${p.id}: ${provErr.message}`,
+        );
+      }
     }
   }
 }
