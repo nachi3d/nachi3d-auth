@@ -388,6 +388,15 @@ Before merging any branch, verify all of these still work:
 | /me — owned grid | Signed-in collector who owns a piece | `me-owned-item` with `data-piece-id` testid visible; empty state hidden |
 | /me — profile editor persistence | Edit display_name + country, save | `me-banner[data-banner-code=profile_saved]` visible; reload preserves the new values |
 | /me — transfer history | Past transfers from/to the current user | `me-history-item` rows render with the correct `data-status`; "Revoke" button appears only on pending outgoing rows |
+| PublicHeader — unauthenticated | `/[locale]/gallery` with no session | `public-header-login` link visible top-right; href is `/[locale]/login`; click navigates there |
+| PublicHeader — authenticated cluster | `/[locale]/gallery` with collector session | `public-header-user` cluster visible; `public-header-avatar` shows a single uppercase initial; `public-header-login` is absent |
+| PublicHeader — dropdown menu | Click `public-header-trigger` | `public-header-menu` opens with `role="menu"`; items "My pieces" + "Sign out" render with `role="menuitem"`; Esc closes; click-outside closes |
+| PublicHeader — My pieces nav | Click `public-header-menu-my-pieces` | Navigates to `/[locale]/me` |
+| PublicHeader — sign out | Click `public-header-menu-sign-out` | `publicSignOutAction` clears the session cookie (scope `local`); page reloads on `/[locale]` showing the unauth login link |
+| PublicHeader — absent on tamper | `/[locale]/v/[uid]?t=<bad>` | Neither `public-header-login` nor `public-header-user` is in the DOM |
+| PublicHeader — absent on /login | `/[locale]/login` | Neither `public-header-login` nor `public-header-user` is in the DOM |
+| PublicHeader — absent on /admin | `/[locale]/admin` with admin session | Admin top-bar visible; `public-header-*` testids absent |
+| PublicHeader — RTL | `/ar/gallery` | `html[dir="rtl"]`; login label is "تسجيل الدخول"; dropdown anchors to the left edge of the trigger (logical `end`) |
 
 When Claude Code makes changes, it must explicitly state which of these
 features were tested and confirmed working. The HMAC verification path
@@ -460,7 +469,7 @@ a back link, sitting above the page `<h1>`:
 | `POST /api/transfer/accept` | Recipient confirms acceptance; calls `accept_transfer(...)` RPC (Phase 5) | Logged-in recipient |
 | `POST /api/transfer/revoke` | Owner cancels a pending transfer (Phase 5) | Logged-in `from_owner_id` |
 | `POST /[locale]/api/me/profile` | Authenticated self-update of `profiles.display_name` + `country` (Phase 5) | Logged in |
-| `POST /[locale]/api/me/signout` | Owner-facing logout — mirrors the admin logoutAction (Phase 5) | Logged in |
+| `publicSignOutAction` (server action) | Owner-facing logout invoked from PublicHeader's dropdown; redirects to the validated `next` form field (Phase 5-prep) | Any session |
 | `GET /auth/callback?code=…&next=…` | Supabase Auth magic-link redirect target; exchanges OTP for cookie session and forwards to `next` (Phase 5) | Public |
 | `/sitemap.xml` | Sitemap covering landing + gallery + every published piece's /v/[uid] (Phase 4) | Public |
 | `/robots.txt` | Robots policy; disallows /admin + /api; declares sitemap (Phase 4) | Public |
@@ -468,6 +477,30 @@ a back link, sitting above the page `<h1>`:
 | `/[locale]/legal/privacy` | Privacy policy / GDPR disclosure (Phase 5-prep) | Public |
 | `/[locale]/legal/terms` | Terms of use (Phase 5-prep) | Public |
 | `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
+
+### PublicHeader presence rules (Phase 5-prep)
+
+`components/layout/PublicHeader.tsx` is the persistent auth affordance for
+the public surface: top-right login link when signed out, avatar + name +
+dropdown ("My pieces" / "Sign out") when signed in. It is **not** rendered
+in a layout — each page that wants it imports and mounts it explicitly,
+because the verification page's tamper/not-found early returns are
+inside the page component and must stay minimal.
+
+- **Renders on:** `/[locale]`, `/[locale]/gallery`, the happy path of
+  `/[locale]/v/[uid]` (PieceVerificationView only), all three
+  `/[locale]/legal/*` pages, `/[locale]/claim/[token]` (including its
+  error views), `/[locale]/transfer/[token]` (handler + error view),
+  and `/[locale]/me`.
+- **Does NOT render on:** the `TamperPanel` and `NotFoundPanel` returns
+  of `/[locale]/v/[uid]` (error states stay minimal), anywhere under
+  `/[locale]/admin/*` (admin layout has its own `AdminTopBar`), or
+  `/[locale]/login` (already a sign-in surface).
+- **Cache implication:** PublicHeader reads the auth cookie via the SSR
+  Supabase client, so any page that mounts it must be `force-dynamic`.
+  `/gallery` and all three `/legal/*` pages traded their static / ISR
+  caching for the affordance — accept the per-request render or hide
+  the header.
 
 ## Security operations
 
