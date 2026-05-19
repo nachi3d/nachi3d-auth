@@ -14,15 +14,19 @@
 --
 -- Idempotent by construction: the SELECT clause excludes any piece that
 -- already has a 'created' row, so re-running the migration is a no-op.
+--
+-- No `notes` — a creation event needs no commentary, and the value would
+-- otherwise surface as a subtitle on the public /v/[uid] timeline. Notes
+-- are reserved for transfers and claims where they're semantically
+-- meaningful.
 
 insert into public.provenance_events (
-  piece_id, event_type, occurred_at, notes
+  piece_id, event_type, occurred_at
 )
 select
   p.id,
   'created',
-  p.created_at,
-  'Backfilled from pieces.created_at.'
+  p.created_at
 from public.pieces p
 where not exists (
   select 1 from public.provenance_events pe

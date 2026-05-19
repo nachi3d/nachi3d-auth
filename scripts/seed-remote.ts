@@ -327,6 +327,8 @@ export async function seedRemote(): Promise<void> {
     // insert one if this piece doesn't already have a 'created' row, so
     // re-runs don't pile up. Anchor occurred_at to pieces.created_at so
     // re-seeding an already-claimed piece doesn't reorder the timeline.
+    // No `notes` — a creation event needs no commentary; notes are
+    // reserved for claims/transfers where they're semantically meaningful.
     const { count: createdCount } = await sb
       .from("provenance_events")
       .select("id", { count: "exact", head: true })
@@ -341,7 +343,6 @@ export async function seedRemote(): Promise<void> {
       const { error: provErr } = await sb.from("provenance_events").insert({
         piece_id: p.id,
         event_type: "created",
-        notes: "Initial registration (seed data).",
         ...(pieceRow?.created_at ? { occurred_at: pieceRow.created_at } : {}),
       });
       if (provErr) {
