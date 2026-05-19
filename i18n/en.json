@@ -68,7 +68,27 @@
     "claim": {
       "title": "Own this piece?",
       "body": "Claim it to your Nachi3D account so future taps show you as the owner, and so you can transfer it cleanly if you ever resell.",
-      "buttonLabel": "Claim this piece"
+      "buttonLabel": "Claim this piece",
+      "modal": {
+        "title": "Claim this piece",
+        "intro": "We'll send a magic link to your email. Click it to confirm ownership — no password needed.",
+        "email": "Your email",
+        "displayName": "Display name",
+        "country": "Country (ISO-3166)",
+        "countryHint": "Two-letter code, e.g. FR, MA, US.",
+        "submit": "Send the link",
+        "submitting": "Sending…",
+        "cancel": "Cancel",
+        "successTitle": "Check your inbox",
+        "successBody": "We sent a magic link. Click it within the next hour to finish claiming this piece.",
+        "successDismiss": "Done",
+        "errors": {
+          "validation": "Check your email, display name and country code.",
+          "already_claimed": "This piece has just been claimed by someone else.",
+          "email_failed": "We couldn't send the email. Try again in a moment.",
+          "generic": "Something went wrong. Try again."
+        }
+      }
     },
     "variantBadge": "Variant",
     "specs": {
@@ -84,10 +104,104 @@
     }
   },
   "claim": {
-    "comingSoon": {
-      "title": "Claim flow — coming soon",
-      "body": "Owner claims will be available in the next release. We'll send a magic link to your email to verify ownership without a password.",
-      "back": "Back to home"
+    "handler": {
+      "expiredTitle": "Link expired",
+      "expiredBody": "This claim link has expired. Magic links are valid for one hour — request a new one from the verification page.",
+      "invalidTitle": "Link not recognized",
+      "invalidBody": "We couldn't find this claim. The link may have been altered. Try again from the verification page.",
+      "emailMismatchTitle": "Email mismatch",
+      "emailMismatchBody": "You're signed in with a different email than the one this claim was sent to. Sign out and re-open the link.",
+      "alreadyClaimedTitle": "Already claimed",
+      "alreadyClaimedBody": "This piece has just been claimed by another collector. If you believe you bought it, contact the seller for a transfer."
+    }
+  },
+  "transfer": {
+    "handler": {
+      "title": "Accept this transfer",
+      "body": "A previous owner is transferring this piece to you. Confirm to make it yours.",
+      "accept": "Accept transfer",
+      "accepting": "Accepting…",
+      "decline": "Not now",
+      "notSignedInTitle": "Sign-in required",
+      "notSignedInBody": "Re-open the magic link from your email to sign in and finish accepting this transfer.",
+      "invalidTitle": "Link not recognized",
+      "invalidBody": "We couldn't find this transfer. The link may have been altered.",
+      "emailMismatchTitle": "Email mismatch",
+      "emailMismatchBody": "This transfer was sent to a different email. Sign out and re-open it from the right inbox.",
+      "acceptedTitle": "Already accepted",
+      "acceptedBody": "This transfer has already been accepted. The piece is in your dashboard.",
+      "revokedTitle": "Transfer revoked",
+      "revokedBody": "The sender revoked this transfer before you accepted it.",
+      "expiredTitle": "Transfer expired",
+      "expiredBody": "Transfers are valid for 7 days. Ask the sender to start a new one.",
+      "ownershipChangedBody": "Ownership of this piece changed before you accepted. The transfer is no longer valid."
+    }
+  },
+  "me": {
+    "heading": "My pieces",
+    "subtitle": "Signed in as {email}",
+    "signOut": "Sign out",
+    "banners": {
+      "claimed": "Piece added to your account.",
+      "transferAccepted": "Transfer accepted — the piece is now yours.",
+      "transferSent": "Transfer initiated. The recipient has been emailed.",
+      "transferRevoked": "Transfer revoked.",
+      "profileSaved": "Profile updated."
+    },
+    "profile": {
+      "heading": "Profile",
+      "displayName": "Display name",
+      "country": "Country (ISO-3166)",
+      "countryHint": "Two-letter code, e.g. FR, MA, US. Leave empty to clear.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "errors": {
+        "validation": "Country must be a two-letter code (or empty).",
+        "generic": "Couldn't save. Try again."
+      }
+    },
+    "owned": {
+      "heading": "Owned pieces",
+      "empty": "You don't own any pieces yet. Claim one from a verification page.",
+      "view": "View certificate",
+      "pieceNumber": "Piece #{number}",
+      "transfer": "Transfer"
+    },
+    "transferModal": {
+      "title": "Transfer this piece",
+      "intro": "We'll email a one-time link to the recipient. They click it to accept — no password needed.",
+      "email": "Recipient email",
+      "note": "Note (optional)",
+      "noteHint": "Plain text, up to 500 characters.",
+      "submit": "Send transfer",
+      "submitting": "Sending…",
+      "cancel": "Cancel",
+      "successTitle": "Transfer initiated",
+      "successBody": "We emailed the recipient. The transfer expires in 7 days unless they accept.",
+      "successDismiss": "Done",
+      "errors": {
+        "validation": "Enter a valid recipient email (and a note under 500 chars).",
+        "selfTransfer": "You can't transfer to yourself.",
+        "pendingExists": "A transfer is already pending for this piece. Revoke it before starting another.",
+        "emailFailed": "We couldn't send the email. Try again in a moment.",
+        "generic": "Something went wrong. Try again."
+      }
+    },
+    "history": {
+      "heading": "Transfer history",
+      "empty": "No transfers yet.",
+      "createdAt": "Created",
+      "recipient": "To",
+      "status": "Status",
+      "piece": "Piece #{number}",
+      "revoke": "Revoke",
+      "revoking": "Revoking…"
+    },
+    "transferStatus": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "revoked": "Revoked",
+      "expired": "Expired"
     }
   },
   "admin": {

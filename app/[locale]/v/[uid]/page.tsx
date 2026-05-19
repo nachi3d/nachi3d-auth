@@ -12,7 +12,10 @@ import { HeroCarousel } from "@/components/verification/HeroCarousel";
 import { CharacterQuote } from "@/components/verification/CharacterQuote";
 import { AuthenticatedSeal } from "@/components/verification/AuthenticatedSeal";
 import { ProvenanceTimeline } from "@/components/verification/ProvenanceTimeline";
-import { ClaimCTA } from "@/components/verification/ClaimCTA";
+import {
+  ClaimCTA,
+  type ClaimModalLabels,
+} from "@/components/verification/ClaimCTA";
 import {
   Specifications,
   type SpecsLabels,
@@ -145,6 +148,9 @@ export default async function VerifyPage({
   const t = await getTranslations("verify");
   const tNav = await getTranslations("nav");
   const tSpecs = await getTranslations("verify.specs");
+  const tClaim = await getTranslations("verify.claim");
+  const tClaimModal = await getTranslations("verify.claim.modal");
+  const tClaimModalErr = await getTranslations("verify.claim.modal.errors");
   const piece = await fetchPublishedPieceByUid(uid);
   const fromGallery = from === "gallery";
 
@@ -201,9 +207,29 @@ export default async function VerifyPage({
           } satisfies Record<ProvenanceEventType, string>,
         },
         claim: {
-          title: t("claim.title"),
-          body: t("claim.body"),
-          buttonLabel: t("claim.buttonLabel"),
+          title: tClaim("title"),
+          body: tClaim("body"),
+          buttonLabel: tClaim("buttonLabel"),
+          modal: {
+            title: tClaimModal("title"),
+            intro: tClaimModal("intro"),
+            email: tClaimModal("email"),
+            displayName: tClaimModal("displayName"),
+            country: tClaimModal("country"),
+            countryHint: tClaimModal("countryHint"),
+            submit: tClaimModal("submit"),
+            submitting: tClaimModal("submitting"),
+            cancel: tClaimModal("cancel"),
+            successTitle: tClaimModal("successTitle"),
+            successBody: tClaimModal("successBody"),
+            successDismiss: tClaimModal("successDismiss"),
+            errors: {
+              validation: tClaimModalErr("validation"),
+              already_claimed: tClaimModalErr("already_claimed"),
+              email_failed: tClaimModalErr("email_failed"),
+              generic: tClaimModalErr("generic"),
+            },
+          },
         },
         variantBadge: t("variantBadge"),
         specs: {
@@ -239,11 +265,7 @@ interface ViewProps {
       empty: string;
       types: Record<ProvenanceEventType, string>;
     };
-    claim: {
-      title: string;
-      body: string;
-      buttonLabel: string;
-    };
+    claim: ClaimModalLabels;
     variantBadge: string;
     specs: SpecsLabels;
   };
@@ -382,10 +404,10 @@ function PieceVerificationView({
 
       {piece.current_owner_id === null ? (
         <ClaimCTA
-          href={`/${locale}/claim/coming-soon`}
-          title={labels.claim.title}
-          body={labels.claim.body}
-          buttonLabel={labels.claim.buttonLabel}
+          pieceId={piece.id}
+          locale={locale}
+          labels={labels.claim}
+          testMode={process.env.E2E_TEST_LOGIN_ENABLED === "1"}
         />
       ) : null}
     </main>

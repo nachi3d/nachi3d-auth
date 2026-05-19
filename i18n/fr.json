@@ -68,7 +68,27 @@
     "claim": {
       "title": "Vous possédez cette pièce ?",
       "body": "Revendiquez-la sur votre compte Nachi3D pour apparaître comme propriétaire lors des futurs scans et la transférer proprement en cas de revente.",
-      "buttonLabel": "Revendiquer cette pièce"
+      "buttonLabel": "Revendiquer cette pièce",
+      "modal": {
+        "title": "Revendiquer cette pièce",
+        "intro": "Nous vous enverrons un lien magique par e-mail. Cliquez dessus pour confirmer la propriété — pas besoin de mot de passe.",
+        "email": "Votre e-mail",
+        "displayName": "Nom affiché",
+        "country": "Pays (ISO-3166)",
+        "countryHint": "Code à deux lettres, ex : FR, MA, US.",
+        "submit": "Envoyer le lien",
+        "submitting": "Envoi…",
+        "cancel": "Annuler",
+        "successTitle": "Vérifiez votre boîte mail",
+        "successBody": "Un lien magique vient d'être envoyé. Cliquez dessus dans l'heure pour finaliser la revendication.",
+        "successDismiss": "OK",
+        "errors": {
+          "validation": "Vérifiez l'e-mail, le nom affiché et le code pays.",
+          "already_claimed": "Cette pièce vient d'être revendiquée par une autre personne.",
+          "email_failed": "Impossible d'envoyer l'e-mail. Réessayez dans un instant.",
+          "generic": "Une erreur est survenue. Réessayez."
+        }
+      }
     },
     "variantBadge": "Variante",
     "specs": {
@@ -84,10 +104,104 @@
     }
   },
   "claim": {
-    "comingSoon": {
-      "title": "Revendication — bientôt disponible",
-      "body": "La revendication par les propriétaires sera disponible dans la prochaine version. Nous vous enverrons un lien magique par e-mail pour confirmer la possession sans mot de passe.",
-      "back": "Retour à l'accueil"
+    "handler": {
+      "expiredTitle": "Lien expiré",
+      "expiredBody": "Ce lien de revendication a expiré. Les liens magiques sont valables une heure — demandez-en un nouveau depuis la page de vérification.",
+      "invalidTitle": "Lien non reconnu",
+      "invalidBody": "Nous n'avons pas trouvé cette revendication. Le lien a peut-être été modifié. Recommencez depuis la page de vérification.",
+      "emailMismatchTitle": "E-mail incohérent",
+      "emailMismatchBody": "Vous êtes connecté avec un e-mail différent de celui auquel cette revendication a été envoyée. Déconnectez-vous et rouvrez le lien.",
+      "alreadyClaimedTitle": "Déjà revendiquée",
+      "alreadyClaimedBody": "Cette pièce vient d'être revendiquée par un autre collectionneur. Si vous l'avez achetée, contactez le vendeur pour un transfert."
+    }
+  },
+  "transfer": {
+    "handler": {
+      "title": "Accepter ce transfert",
+      "body": "Un précédent propriétaire vous transfère cette pièce. Confirmez pour qu'elle vous appartienne.",
+      "accept": "Accepter le transfert",
+      "accepting": "Acceptation…",
+      "decline": "Plus tard",
+      "notSignedInTitle": "Connexion requise",
+      "notSignedInBody": "Rouvrez le lien magique reçu par e-mail pour vous connecter et finaliser l'acceptation.",
+      "invalidTitle": "Lien non reconnu",
+      "invalidBody": "Nous n'avons pas trouvé ce transfert. Le lien a peut-être été modifié.",
+      "emailMismatchTitle": "E-mail incohérent",
+      "emailMismatchBody": "Ce transfert a été envoyé à un autre e-mail. Déconnectez-vous et rouvrez-le depuis la bonne boîte.",
+      "acceptedTitle": "Déjà accepté",
+      "acceptedBody": "Ce transfert a déjà été accepté. La pièce figure dans votre tableau de bord.",
+      "revokedTitle": "Transfert révoqué",
+      "revokedBody": "L'expéditeur a révoqué ce transfert avant que vous l'acceptiez.",
+      "expiredTitle": "Transfert expiré",
+      "expiredBody": "Les transferts sont valables 7 jours. Demandez à l'expéditeur d'en lancer un nouveau.",
+      "ownershipChangedBody": "La propriété de cette pièce a changé avant que vous n'acceptiez. Le transfert n'est plus valable."
+    }
+  },
+  "me": {
+    "heading": "Mes pièces",
+    "subtitle": "Connecté en tant que {email}",
+    "signOut": "Se déconnecter",
+    "banners": {
+      "claimed": "Pièce ajoutée à votre compte.",
+      "transferAccepted": "Transfert accepté — la pièce vous appartient désormais.",
+      "transferSent": "Transfert initié. Le destinataire a été averti par e-mail.",
+      "transferRevoked": "Transfert révoqué.",
+      "profileSaved": "Profil mis à jour."
+    },
+    "profile": {
+      "heading": "Profil",
+      "displayName": "Nom affiché",
+      "country": "Pays (ISO-3166)",
+      "countryHint": "Code à deux lettres, ex : FR, MA, US. Laissez vide pour effacer.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "errors": {
+        "validation": "Le pays doit être un code à deux lettres (ou vide).",
+        "generic": "Impossible d'enregistrer. Réessayez."
+      }
+    },
+    "owned": {
+      "heading": "Pièces possédées",
+      "empty": "Vous ne possédez aucune pièce. Revendiquez-en une depuis une page de vérification.",
+      "view": "Voir le certificat",
+      "pieceNumber": "Pièce #{number}",
+      "transfer": "Transférer"
+    },
+    "transferModal": {
+      "title": "Transférer cette pièce",
+      "intro": "Nous enverrons un lien à usage unique au destinataire. Il l'ouvre pour accepter — pas besoin de mot de passe.",
+      "email": "E-mail du destinataire",
+      "note": "Note (optionnelle)",
+      "noteHint": "Texte simple, 500 caractères max.",
+      "submit": "Envoyer le transfert",
+      "submitting": "Envoi…",
+      "cancel": "Annuler",
+      "successTitle": "Transfert initié",
+      "successBody": "Le destinataire a été contacté par e-mail. Le transfert expire dans 7 jours s'il n'accepte pas.",
+      "successDismiss": "OK",
+      "errors": {
+        "validation": "Saisissez un e-mail destinataire valide (et une note ≤ 500 caractères).",
+        "selfTransfer": "Vous ne pouvez pas transférer vers vous-même.",
+        "pendingExists": "Un transfert est déjà en attente pour cette pièce. Révoquez-le avant d'en lancer un autre.",
+        "emailFailed": "Impossible d'envoyer l'e-mail. Réessayez dans un instant.",
+        "generic": "Une erreur est survenue. Réessayez."
+      }
+    },
+    "history": {
+      "heading": "Historique des transferts",
+      "empty": "Aucun transfert pour le moment.",
+      "createdAt": "Créé le",
+      "recipient": "Vers",
+      "status": "Statut",
+      "piece": "Pièce #{number}",
+      "revoke": "Révoquer",
+      "revoking": "Révocation…"
+    },
+    "transferStatus": {
+      "pending": "En attente",
+      "accepted": "Accepté",
+      "revoked": "Révoqué",
+      "expired": "Expiré"
     }
   },
   "admin": {

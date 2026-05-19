@@ -71,6 +71,36 @@ export type VerificationLogRow = {
   occurred_at: string;
 };
 
+export type ClaimRow = {
+  id: string;
+  piece_id: string;
+  email: string;
+  display_name: string | null;
+  country: string | null;
+  token: string;
+  expires_at: string;
+  consumed_at: string | null;
+  is_fixture: boolean;
+  created_at: string;
+};
+
+export type TransferStatus = "pending" | "accepted" | "revoked" | "expired";
+
+export type TransferRow = {
+  id: string;
+  piece_id: string;
+  from_owner_id: string;
+  to_email: string;
+  to_owner_id: string | null;
+  token: string;
+  status: TransferStatus;
+  expires_at: string;
+  note: string | null;
+  is_fixture: boolean;
+  created_at: string;
+  accepted_at: string | null;
+};
+
 export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12";
@@ -117,9 +147,82 @@ export type Database = {
         Update: Partial<VerificationLogRow>;
         Relationships: [];
       };
+      claims: {
+        Row: ClaimRow;
+        Insert: Omit<ClaimRow, "id" | "is_fixture" | "created_at" | "consumed_at"> & {
+          id?: string;
+          consumed_at?: string | null;
+          // is_fixture is set ONLY by the seed/test code; admin and
+          // public APIs strip it before reaching the database.
+          is_fixture?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<ClaimRow>;
+        Relationships: [];
+      };
+      transfers: {
+        Row: TransferRow;
+        Insert: Omit<
+          TransferRow,
+          "id" | "status" | "is_fixture" | "created_at" | "accepted_at" | "to_owner_id"
+        > & {
+          id?: string;
+          status?: TransferStatus;
+          to_owner_id?: string | null;
+          accepted_at?: string | null;
+          is_fixture?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<TransferRow>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      claim_piece: {
+        Args: {
+          p_token: string;
+          p_user_id: string;
+          p_display_name: string;
+          p_country: string;
+        };
+        Returns:
+          | { ok: true; piece_id: string }
+          | {
+              ok: false;
+              error:
+                | "invalid_token"
+                | "already_consumed"
+                | "expired"
+                | "piece_not_found"
+                | "already_claimed";
+            };
+      };
+      accept_transfer: {
+        Args: {
+          p_token: string;
+          p_user_id: string;
+        };
+        Returns:
+          | { ok: true; piece_id: string }
+          | {
+              ok: false;
+              error:
+                | "invalid_token"
+                | "accepted"
+                | "revoked"
+                | "expired"
+                | "email_mismatch"
+                | "piece_not_found"
+                | "ownership_changed"
+                | "invalid_user";
+            };
+      };
+      expire_pending_transfers_and_claims: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+    };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
