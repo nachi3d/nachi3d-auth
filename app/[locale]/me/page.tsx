@@ -12,6 +12,7 @@ import {
 } from "@/lib/server/transfers";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 import { OwnerDashboard } from "@/components/owner/OwnerDashboard";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 import { signToken } from "@/lib/hmac";
 
 export const dynamic = "force-dynamic";
@@ -90,6 +91,7 @@ export default async function MePage({ params, searchParams }: PageProps) {
 
   return (
     <>
+      <PublicHeader locale={locale} />
       <OwnerDashboard
         locale={locale}
         profile={{
@@ -121,7 +123,6 @@ export default async function MePage({ params, searchParams }: PageProps) {
         labels={{
           heading: t("heading"),
           subtitle: t("subtitle", { email: user.email ?? "" }),
-          signOut: t("signOut"),
           back: tNav("home"),
           banners: {
             claimed: t("banners.claimed"),

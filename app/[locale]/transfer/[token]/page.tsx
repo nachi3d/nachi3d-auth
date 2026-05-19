@@ -8,6 +8,7 @@ import { getTransferByToken } from "@/lib/server/transfers";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 import { BackLink } from "@/components/ui/BackLink";
 import { TransferAcceptForm } from "@/components/transfer/TransferAcceptForm";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -116,6 +117,7 @@ export default async function TransferHandlerPage({ params }: PageProps) {
 
   return (
     <>
+      <PublicHeader locale={locale} />
       <main
         data-testid="transfer-handler"
         className="brand-atmosphere mx-auto max-w-xl px-6 py-16"
@@ -199,6 +201,7 @@ interface ErrorViewProps {
 function ErrorView({ locale, title, body, backLabel }: ErrorViewProps) {
   return (
     <>
+      <PublicHeader locale={locale} />
       <main
         data-testid="transfer-error"
         className="brand-atmosphere mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-24"

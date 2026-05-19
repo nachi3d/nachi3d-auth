@@ -34,7 +34,6 @@ export interface TransferEntry {
 export interface OwnerDashboardLabels {
   heading: string;
   subtitle: string;
-  signOut: string;
   back: string;
   banners: Record<
     | "claimed"
@@ -139,7 +138,6 @@ export function OwnerDashboard({
             {labels.subtitle}
           </p>
         </div>
-        <SignOutForm locale={locale} label={labels.signOut} />
       </div>
 
       {banner ? (
@@ -179,20 +177,6 @@ export function OwnerDashboard({
         labels={labels.transferModal}
       />
     </main>
-  );
-}
-
-function SignOutForm({ locale, label }: { locale: Locale; label: string }) {
-  return (
-    <form action={`/${locale}/api/me/signout`} method="post">
-      <button
-        type="submit"
-        data-testid="me-signout"
-        className="rounded-sm border border-dark-700 px-3 py-1.5 text-xs uppercase tracking-[0.2em] text-dark-text-200 transition hover:border-primary-500 hover:text-primary-300"
-      >
-        {label}
-      </button>
-    </form>
   );
 }
 

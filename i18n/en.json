@@ -317,7 +317,12 @@
     "new_piece": "New piece",
     "edit_piece": "Edit #{number}",
     "back": "Back",
-    "back_to_gallery": "Back to the gallery"
+    "back_to_gallery": "Back to the gallery",
+    "auth": {
+      "login": "Sign in",
+      "myPieces": "My pieces",
+      "signOut": "Sign out"
+    }
   },
   "login": {
     "title": "Sign in",

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { claimPiece, getClaimByToken } from "@/lib/server/claims";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 import { BackLink } from "@/components/ui/BackLink";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +126,7 @@ interface ErrorViewProps {
 function ClaimErrorView({ locale, title, body, backLabel }: ErrorViewProps) {
   return (
     <>
+      <PublicHeader locale={locale as Locale} />
       <main
         data-testid="claim-error"
         className="brand-atmosphere mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-24"

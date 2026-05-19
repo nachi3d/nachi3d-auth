@@ -9,8 +9,12 @@ import {
   formatLegalDate,
 } from "@/components/legal/LegalPage";
 import { SiteFooter } from "@/components/ui/SiteFooter";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
-export const dynamic = "force-static";
+// PublicHeader reads the auth cookie, so the page is per-request
+// dynamic. We lose force-static caching but gain a visible auth
+// affordance on every public surface.
+export const dynamic = "force-dynamic";
 
 // Bump on every edit to the mentions content (i18n strings or layout).
 const LAST_UPDATED = "2026-05-15";
@@ -39,6 +43,7 @@ export default async function MentionsPage({ params }: PageProps) {
 
   return (
     <>
+      <PublicHeader locale={locale} />
       <LegalPage
         locale={locale}
         namespace="legal.mentions"

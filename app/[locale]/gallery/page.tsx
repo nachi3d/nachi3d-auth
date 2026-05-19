@@ -13,11 +13,13 @@ import {
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { SiteFooter } from "@/components/ui/SiteFooter";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
-// Pages are cached at the edge for 1 hour; cards don't change minute by
-// minute, and an admin flipping show_in_gallery is fine to surface on
-// the next revalidation cycle.
-export const revalidate = 3600;
+// PublicHeader reads the auth cookie on the server, so this route is
+// dynamic per request. We previously cached the gallery at the edge
+// (revalidate = 3600) but the header trades static SSR for a visible
+// auth affordance — see CLAUDE.md "Routes & Surfaces".
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -103,6 +105,7 @@ export default async function GalleryPage({
 
   return (
     <>
+    <PublicHeader locale={locale} />
     <main
       className="brand-atmosphere mx-auto max-w-6xl px-6 py-16"
       data-testid="gallery-page"

@@ -317,7 +317,12 @@
     "new_piece": "قطعة جديدة",
     "edit_piece": "تعديل #{number}",
     "back": "رجوع",
-    "back_to_gallery": "العودة إلى المعرض"
+    "back_to_gallery": "العودة إلى المعرض",
+    "auth": {
+      "login": "تسجيل الدخول",
+      "myPieces": "قطعي",
+      "signOut": "تسجيل الخروج"
+    }
   },
   "login": {
     "title": "تسجيل الدخول",

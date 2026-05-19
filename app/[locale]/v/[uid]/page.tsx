@@ -21,6 +21,7 @@ import {
   type SpecsLabels,
 } from "@/components/verification/Specifications";
 import { SiteFooter } from "@/components/ui/SiteFooter";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 import type {
   PieceRow,
   ProvenanceEventRow,
@@ -297,6 +298,7 @@ function PieceVerificationView({
 }: ViewProps) {
   return (
     <>
+    <PublicHeader locale={locale} />
     <main
       data-testid="verification-piece-card"
       className="brand-atmosphere mx-auto max-w-2xl px-6 py-12 md:py-16"

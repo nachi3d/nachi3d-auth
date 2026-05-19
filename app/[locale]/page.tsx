@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/i18n/routing";
 import { SiteFooter } from "@/components/ui/SiteFooter";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -19,6 +20,7 @@ export default async function LandingPage({ params }: PageProps) {
 
   return (
     <>
+    <PublicHeader locale={locale} />
     <main className="brand-atmosphere mx-auto flex max-w-2xl flex-col justify-center px-6 py-24">
       <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary-400">
         Nachi3D

@@ -9,8 +9,9 @@ import {
   formatLegalDate,
 } from "@/components/legal/LegalPage";
 import { SiteFooter } from "@/components/ui/SiteFooter";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 const LAST_UPDATED = "2026-05-15";
 
@@ -38,6 +39,7 @@ export default async function PrivacyPage({ params }: PageProps) {
 
   return (
     <>
+      <PublicHeader locale={locale} />
       <LegalPage
         locale={locale}
         namespace="legal.privacy"
