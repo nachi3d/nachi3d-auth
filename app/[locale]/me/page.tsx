@@ -25,6 +25,7 @@ interface PageProps {
     transfer_sent?: string;
     transfer_revoked?: string;
     profile_saved?: string;
+    admin_only?: string;
   }>;
 }
 
@@ -59,7 +60,9 @@ export default async function MePage({ params, searchParams }: PageProps) {
             ? ("transfer_revoked" as const)
             : sp.profile_saved === "1"
               ? ("profile_saved" as const)
-              : null;
+              : sp.admin_only === "1"
+                ? ("admin_only" as const)
+                : null;
 
   const [profile, pieces, transfers] = await Promise.all([
     getProfileById(user.id),
@@ -130,6 +133,7 @@ export default async function MePage({ params, searchParams }: PageProps) {
             transfer_sent: t("banners.transferSent"),
             transfer_revoked: t("banners.transferRevoked"),
             profile_saved: t("banners.profileSaved"),
+            admin_only: t("banners.adminOnly"),
           },
           profile: {
             heading: t("profile.heading"),

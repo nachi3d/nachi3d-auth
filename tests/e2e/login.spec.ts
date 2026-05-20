@@ -5,7 +5,7 @@ import {
   SEED_COLLECTOR,
 } from "./fixtures/auth";
 
-test.describe("Phase 5-prep — admin login", () => {
+test.describe("Phase 5-prep — login", () => {
   test.describe("logged-out flows", () => {
     // Run every test in this describe with a fresh, anonymous context so
     // the cookie jar is empty and the login form is the entry point.
@@ -26,31 +26,35 @@ test.describe("Phase 5-prep — admin login", () => {
       );
     });
 
-    test("non-admin credentials are rejected, user is signed out", async ({
+    test("non-admin credentials sign in and land on /me", async ({
       page,
-      context,
     }) => {
       await page.goto("/en/login");
       await page.getByTestId("login-email").fill(SEED_COLLECTOR.email);
       await page.getByTestId("login-password").fill(SEED_COLLECTOR.password);
       await page.getByTestId("login-submit").click();
 
-      // The action signs the user out and redirects back to /login with
-      // the access_denied banner visible.
-      await page.waitForURL(/\/en\/login\?error=access_denied$/);
-      await expect(
-        page.getByTestId("login-banner-access-denied"),
-      ).toBeVisible();
+      // Collectors are routed to their own dashboard, not refused.
+      await page.waitForURL(/\/en\/me(\?.*)?$/);
+      await expect(page.getByTestId("me-dashboard")).toBeVisible();
+    });
 
-      // Verify the session was actually cleared — the @supabase/ssr
-      // cookies should not be present after the action ran.
-      const cookies = await context.cookies();
-      const sbCookies = cookies.filter((c) => c.name.startsWith("sb-"));
-      expect(sbCookies).toEqual([]);
+    test("non-admin visiting /admin is redirected to /me with banner", async ({
+      page,
+    }) => {
+      // Sign in as the collector first so we hit the admin gate as an
+      // authenticated non-admin (not as an anonymous visitor).
+      await page.goto("/en/login");
+      await page.getByTestId("login-email").fill(SEED_COLLECTOR.email);
+      await page.getByTestId("login-password").fill(SEED_COLLECTOR.password);
+      await page.getByTestId("login-submit").click();
+      await page.waitForURL(/\/en\/me(\?.*)?$/);
 
-      // And /admin is still gated.
       await page.goto("/en/admin");
-      await page.waitForURL(/\/en\/login(\?.*)?$/);
+      await page.waitForURL(/\/en\/me\?admin_only=1$/);
+      const banner = page.getByTestId("me-banner");
+      await expect(banner).toBeVisible();
+      await expect(banner).toHaveAttribute("data-banner-code", "admin_only");
     });
 
     test("bad credentials show the generic invalid error", async ({ page }) => {

@@ -40,7 +40,8 @@ export interface OwnerDashboardLabels {
     | "transfer_accepted"
     | "transfer_sent"
     | "transfer_revoked"
-    | "profile_saved",
+    | "profile_saved"
+    | "admin_only",
     string
   >;
   profile: {
@@ -102,6 +103,7 @@ interface DashboardProps {
     | "transfer_sent"
     | "transfer_revoked"
     | "profile_saved"
+    | "admin_only"
     | null;
   labels: OwnerDashboardLabels;
 }
@@ -145,7 +147,11 @@ export function OwnerDashboard({
           role="status"
           data-testid="me-banner"
           data-banner-code={banner}
-          className="mt-6 rounded-sm border border-primary-500/40 bg-primary-950/20 px-4 py-3 text-sm text-primary-200"
+          className={
+            banner === "admin_only"
+              ? "mt-6 rounded-sm border border-amber-500/40 bg-amber-950/20 px-4 py-3 text-sm text-amber-200"
+              : "mt-6 rounded-sm border border-primary-500/40 bg-primary-950/20 px-4 py-3 text-sm text-primary-200"
+          }
         >
           {labels.banners[banner]}
         </div>

@@ -9,17 +9,15 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string }>;
 }
 
-export default async function LoginPage({ params, searchParams }: PageProps) {
+export default async function LoginPage({ params }: PageProps) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
 
-  // Already-authenticated admins bounce straight to /admin so the login
-  // form is never their landing surface. Non-admin sessions fall through
-  // and see the form (the access_denied banner appears via ?error).
+  // Already-authenticated visitors bounce past the form straight to
+  // their home surface: admins → /admin, collectors → /me.
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,14 +28,10 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
       .select("is_admin")
       .eq("id", user.id)
       .maybeSingle();
-    if (profile?.is_admin) {
-      redirect(`/${locale}/admin`);
-    }
+    redirect(`/${locale}/${profile?.is_admin ? "admin" : "me"}`);
   }
 
   const t = await getTranslations("login");
-  const sp = await searchParams;
-  const initialBanner = sp.error === "access_denied" ? "access_denied" : null;
 
   const labels: LoginFormLabels = {
     email: t("email"),
@@ -47,9 +41,7 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
     errors: {
       validation: t("errors.validation"),
       invalid: t("errors.invalid"),
-      denied: t("errors.denied"),
     },
-    bannerAccessDenied: t("banner.accessDenied"),
   };
 
   return (
@@ -67,11 +59,7 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
         </h1>
         <p className="mt-2 mb-8 text-sm text-dark-text-200">{t("subtitle")}</p>
 
-        <LoginForm
-          locale={locale}
-          labels={labels}
-          initialBanner={initialBanner}
-        />
+        <LoginForm locale={locale} labels={labels} />
       </div>
     </main>
     <SiteFooter locale={locale} />

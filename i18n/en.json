@@ -146,7 +146,8 @@
       "transferAccepted": "Transfer accepted — the piece is now yours.",
       "transferSent": "Transfer initiated. The recipient has been emailed.",
       "transferRevoked": "Transfer revoked.",
-      "profileSaved": "Profile updated."
+      "profileSaved": "Profile updated.",
+      "adminOnly": "That page is reserved for administrators."
     },
     "profile": {
       "heading": "Profile",
@@ -326,18 +327,14 @@
   },
   "login": {
     "title": "Sign in",
-    "subtitle": "Admin access only.",
+    "subtitle": "Sign in to manage your pieces.",
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
     "submitting": "Signing in…",
     "errors": {
       "invalid": "Invalid credentials",
-      "denied": "Access denied",
       "validation": "Enter a valid email and password."
-    },
-    "banner": {
-      "accessDenied": "Access denied. This account does not have admin privileges."
     }
   },
   "footer": {

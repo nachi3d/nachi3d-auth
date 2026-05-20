@@ -1,4 +1,4 @@
-export type LoginErrorCode = "validation" | "invalid" | "denied";
+export type LoginErrorCode = "validation" | "invalid";
 
 export interface LoginActionState {
   ok: boolean;

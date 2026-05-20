@@ -146,7 +146,8 @@
       "transferAccepted": "Transfert accepté — la pièce vous appartient désormais.",
       "transferSent": "Transfert initié. Le destinataire a été averti par e-mail.",
       "transferRevoked": "Transfert révoqué.",
-      "profileSaved": "Profil mis à jour."
+      "profileSaved": "Profil mis à jour.",
+      "adminOnly": "Cette page est réservée aux administrateurs."
     },
     "profile": {
       "heading": "Profil",
@@ -326,18 +327,14 @@
   },
   "login": {
     "title": "Connexion",
-    "subtitle": "Accès réservé aux administrateurs.",
+    "subtitle": "Connectez-vous pour gérer vos pièces.",
     "email": "Email",
     "password": "Mot de passe",
     "submit": "Se connecter",
     "submitting": "Connexion…",
     "errors": {
       "invalid": "Email ou mot de passe incorrect",
-      "denied": "Accès refusé",
       "validation": "Saisissez un email et un mot de passe valides."
-    },
-    "banner": {
-      "accessDenied": "Accès refusé. Ce compte n'a pas les privilèges d'administrateur."
     }
   },
   "footer": {

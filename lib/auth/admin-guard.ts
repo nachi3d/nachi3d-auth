@@ -47,8 +47,8 @@ export function adminGuardStatus(reason: AdminGuardError["reason"]): number {
 /**
  * Page-level guard for /[locale]/admin/* server components. Redirects
  * unauthenticated visitors to the login page; redirects authenticated
- * non-admins to /login?error=access_denied (the form shows a banner).
- * Returns the resolved user + supabase client when access is granted.
+ * non-admins to /me?admin_only=1 (the dashboard shows a banner). Returns
+ * the resolved user + supabase client when access is granted.
  */
 export async function requireAdminPage(locale: Locale) {
   const supabase = await createClient();
@@ -67,7 +67,7 @@ export async function requireAdminPage(locale: Locale) {
     .maybeSingle();
 
   if (!profile?.is_admin) {
-    redirect(`/${locale}/login?error=access_denied`);
+    redirect(`/${locale}/me?admin_only=1`);
   }
 
   return { user, supabase };

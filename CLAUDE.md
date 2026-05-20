@@ -302,12 +302,13 @@ Before merging any branch, verify all of these still work:
 | RLS on `pieces` | Anonymous read of `status='draft'` piece | Returns null/empty |
 | RLS on `verification_logs` | Anonymous SELECT via REST | Returns 401/empty |
 | Admin gate | `/admin` while not logged in | Server-side redirect to `/[locale]/login` |
-| Admin gate | `/admin` while logged in but `is_admin=false` | Redirect to `/[locale]/login?error=access_denied` (banner shown) |
-| Admin login | Valid admin credentials on `/[locale]/login` | Redirect to `/[locale]/admin` after `signInWithPassword` |
-| Admin login | Valid non-admin credentials | Server signs user out + redirects to `/[locale]/login?error=access_denied` |
-| Admin login | Bad credentials | Generic "invalid credentials" error (no user-enumeration leak) |
+| Admin gate | `/admin` while logged in but `is_admin=false` | Redirect to `/[locale]/me?admin_only=1` (banner shown — not `/login`) |
+| Login | Valid admin credentials on `/[locale]/login` | `signInWithPassword` succeeds, server redirects to `/[locale]/admin` |
+| Login | Valid collector (non-admin) credentials on `/[locale]/login` | `signInWithPassword` succeeds, server redirects to `/[locale]/me` (no refusal) |
+| Login | Bad credentials | Generic "invalid credentials" error (no user-enumeration leak) |
 | Admin logout | Click logout in admin top-bar | Server-side signOut + redirect to `/[locale]/login`; session cookies cleared |
 | Already-authenticated admin on `/login` | GET `/[locale]/login` while signed in as admin | Redirect to `/[locale]/admin` |
+| Already-authenticated collector on `/login` | GET `/[locale]/login` while signed in as a non-admin | Redirect to `/[locale]/me` |
 | Locale routing | `/fr/v/<uid>?t=<token>` | French strings, LTR |
 | Locale routing | `/ar/v/<uid>?t=<token>` | Arabic strings, RTL direction |
 | NFC UID uniqueness | Insert duplicate UID | DB rejects with constraint error |
@@ -617,9 +618,11 @@ When to rotate:
 - Landing-page CTA linking to the gallery
 
 ### Phase 5-prep — Admin login (password)
-- `/[locale]/login` — email + password sign-in with zod validation
+- `/[locale]/login` — email + password sign-in with zod validation;
+  accepts admin AND collector credentials. Admins are routed to
+  `/[locale]/admin`, collectors to `/[locale]/me`.
 - `/[locale]/admin` gate redirects unauthenticated → `/login`,
-  authenticated non-admin → `/login?error=access_denied`
+  authenticated non-admin → `/[locale]/me?admin_only=1` (banner)
 - Admin top-bar with "Connecté en tant que <email>" + logout link
 - Test fixtures use distinctive `test-*-do-not-use` passwords; production
   admins are created via the Supabase dashboard
@@ -735,10 +738,12 @@ client-side token storage.
   no in-app account creation UI. Anyone with admin needs gets a row
   added by the operator.
 - **`is_admin` is the source of truth** — the login flow authenticates
-  any valid Supabase user, then checks `profiles.is_admin` server-side.
-  Non-admin authenticated users are immediately signed out and bounced
-  back to `/login?error=access_denied`. To grant or revoke admin access,
-  toggle `profiles.is_admin` in the database (dashboard SQL editor).
+  any valid Supabase user, then checks `profiles.is_admin` server-side
+  to decide where to land them: admins go to `/[locale]/admin`,
+  collectors go to `/[locale]/me`. The `/admin` gate independently
+  re-checks `is_admin` and redirects non-admins to `/[locale]/me?admin_only=1`.
+  To grant or revoke admin access, toggle `profiles.is_admin` in the
+  database (dashboard SQL editor).
 - **Password reset** — there is no in-app forgot-password flow. Reset is
   done from the Supabase dashboard (Auth → Users → ⋯ → Send recovery
   email, or set a new password directly). Reasoning: with a tiny admin

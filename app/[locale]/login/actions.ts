@@ -41,15 +41,5 @@ export async function loginAction(
     .eq("id", data.user.id)
     .maybeSingle();
 
-  if (!profile?.is_admin) {
-    // Sign the user out so the cookie session is cleared. Use scope
-    // 'local' so only THIS session is revoked — Supabase's default of
-    // 'global' would terminate every device the user is signed in on,
-    // which is a surprising side effect for what was effectively just
-    // a wrong-account login attempt.
-    await supabase.auth.signOut({ scope: "local" });
-    redirect(`/${locale}/login?error=access_denied`);
-  }
-
-  redirect(`/${locale}/admin`);
+  redirect(`/${locale}/${profile?.is_admin ? "admin" : "me"}`);
 }

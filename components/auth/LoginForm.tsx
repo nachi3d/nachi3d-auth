@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { loginSchema } from "@/lib/validation/login";
 import { loginAction } from "@/app/[locale]/login/actions";
@@ -17,20 +17,14 @@ export interface LoginFormLabels {
   submit: string;
   submitting: string;
   errors: Record<LoginErrorCode, string>;
-  bannerAccessDenied: string;
 }
 
 interface LoginFormProps {
   locale: Locale;
   labels: LoginFormLabels;
-  initialBanner: "access_denied" | null;
 }
 
-export function LoginForm({
-  locale,
-  labels,
-  initialBanner,
-}: LoginFormProps) {
+export function LoginForm({ locale, labels }: LoginFormProps) {
   // Wrap the server action with a client-side zod check so invalid
   // submissions never make a network round trip. The server action
   // runs the same loginSchema as a defense-in-depth check.
@@ -48,18 +42,6 @@ export function LoginForm({
     INITIAL_LOGIN_STATE,
   );
 
-  const [showAccessDeniedBanner, setShowAccessDeniedBanner] =
-    useState(initialBanner === "access_denied");
-
-  // Once the user resubmits, hide the access_denied banner so the
-  // inline error takes over (no stale "access denied" lingering above
-  // a fresh "invalid creds" row).
-  useEffect(() => {
-    if (state.error) {
-      setShowAccessDeniedBanner(false);
-    }
-  }, [state.error]);
-
   const inlineError = state.error ?? null;
 
   return (
@@ -70,16 +52,6 @@ export function LoginForm({
       noValidate
     >
       <input type="hidden" name="locale" value={locale} />
-
-      {showAccessDeniedBanner ? (
-        <div
-          data-testid="login-banner-access-denied"
-          role="alert"
-          className="rounded-sm border border-red-500/40 bg-red-950/30 px-4 py-3 text-sm text-red-200"
-        >
-          {labels.bannerAccessDenied}
-        </div>
-      ) : null}
 
       {inlineError ? (
         <div
