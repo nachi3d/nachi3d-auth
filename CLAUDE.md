@@ -306,6 +306,14 @@ Before merging any branch, verify all of these still work:
 | Login | Valid admin credentials on `/[locale]/login` | `signInWithPassword` succeeds, server redirects to `/[locale]/admin` |
 | Login | Valid collector (non-admin) credentials on `/[locale]/login` | `signInWithPassword` succeeds, server redirects to `/[locale]/me` (no refusal) |
 | Login | Bad credentials | Generic "invalid credentials" error (no user-enumeration leak) |
+| Login — dual methods | GET `/[locale]/login` | Magic-link form (primary) and password form (secondary) render on the same card with a `login-divider`; both share the email input |
+| Login — magic link happy path | Submit `login-magic-link-form` with a valid email | `POST /api/login/magic-link` succeeds, form flips to `login-magic-link-success`, email field disabled, 60s resend cooldown via `login-magic-link-resend` |
+| Login — magic link email validation | Submit magic-link form with a malformed email | `login-magic-link-error[data-error-code=emailValidation]` visible; no API call fired |
+| Login — magic link rate limit | `POST /api/login/magic-link` when Supabase returns 429 | Route forwards a 429 with `error=rate_limit`; form surfaces `login-magic-link-error[data-error-code=rateLimit]` |
+| Login — magic link test mode | `POST /api/login/magic-link` with `E2E_TEST_LOGIN_ENABLED=1` | `signInWithOtp` is skipped; response returns `{ ok: true, next: "/[locale]/me", email_redirect_to: "<origin>/auth/callback?next=…" }` so e2e can drive the callback directly |
+| Magic-link callback — collector | `GET /auth/callback?code=…&next=/[locale]/me` for a non-admin | Code exchanged, lands on `/[locale]/me` |
+| Magic-link callback — admin | `GET /auth/callback?code=…&next=/[locale]/me` for an admin | Code exchanged, server re-routes the `/me` default to `/[locale]/admin` |
+| Magic-link callback — claim/transfer pass-through | `GET /auth/callback?code=…&next=/[locale]/claim/<token>` (or `/transfer/<token>`) | Honored as-is; the handler page enforces its own access checks |
 | Admin logout | Click logout in admin top-bar | Server-side signOut + redirect to `/[locale]/login`; session cookies cleared |
 | Already-authenticated admin on `/login` | GET `/[locale]/login` while signed in as admin | Redirect to `/[locale]/admin` |
 | Already-authenticated collector on `/login` | GET `/[locale]/login` while signed in as a non-admin | Redirect to `/[locale]/me` |
@@ -471,7 +479,8 @@ a back link, sitting above the page `<h1>`:
 | `POST /api/transfer/revoke` | Owner cancels a pending transfer (Phase 5) | Logged-in `from_owner_id` |
 | `POST /[locale]/api/me/profile` | Authenticated self-update of `profiles.display_name` + `country` (Phase 5) | Logged in |
 | `publicSignOutAction` (server action) | Owner-facing logout invoked from PublicHeader's dropdown; redirects to the validated `next` form field (Phase 5-prep) | Any session |
-| `GET /auth/callback?code=…&next=…` | Supabase Auth magic-link redirect target; exchanges OTP for cookie session and forwards to `next` (Phase 5) | Public |
+| `POST /api/login/magic-link` | Send a passwordless sign-in link via `signInWithOtp`; in test mode returns the `next` URL synchronously (Phase 5-prep) | Public |
+| `GET /auth/callback?code=…&next=…` | Supabase Auth magic-link redirect target; exchanges OTP for cookie session and forwards to `next`, rerouting `/[locale]/me` to `/[locale]/admin` for admins (Phase 5 / 5-prep) | Public |
 | `/sitemap.xml` | Sitemap covering landing + gallery + every published piece's /v/[uid] (Phase 4) | Public |
 | `/robots.txt` | Robots policy; disallows /admin + /api; declares sitemap (Phase 4) | Public |
 | `/[locale]/legal/mentions` | Mentions légales / legal notice (Phase 5-prep) | Public |
@@ -617,16 +626,32 @@ When to rotate:
 - OG/Twitter meta on `/[locale]/gallery` (hero photo of most recent piece)
 - Landing-page CTA linking to the gallery
 
-### Phase 5-prep — Admin login (password)
-- `/[locale]/login` — email + password sign-in with zod validation;
-  accepts admin AND collector credentials. Admins are routed to
-  `/[locale]/admin`, collectors to `/[locale]/me`.
+### Phase 5-prep — Login (password + magic link)
+- `/[locale]/login` surfaces **two** sign-in methods on the same card:
+  - **Magic link (primary)** — email-only. Calls
+    `POST /api/login/magic-link`, which fires
+    `supabase.auth.signInWithOtp` with `emailRedirectTo=
+    <origin>/auth/callback?next=/[locale]/me`. Collector-friendly:
+    no password to remember.
+  - **Password (secondary)** — admin-preferred. Email + password via
+    `signInWithPassword`, zod-validated.
+  - Both methods produce the same authenticated session and rely on
+    `profiles.is_admin` to route admins to `/[locale]/admin` and
+    collectors to `/[locale]/me`. The shared email input means the
+    collector types their address once and picks a method.
 - `/[locale]/admin` gate redirects unauthenticated → `/login`,
   authenticated non-admin → `/[locale]/me?admin_only=1` (banner)
+- `/auth/callback` exchanges the OTP for a cookie session, then for
+  `next=/[locale]/me` reroutes admins to `/[locale]/admin`. Claim and
+  transfer handler URLs in `next` are honored as-is.
 - Admin top-bar with "Connecté en tant que <email>" + logout link
-- Test fixtures use distinctive `test-*-do-not-use` passwords; production
-  admins are created via the Supabase dashboard
-- `/api/test/signin` remains gated by `E2E_TEST_LOGIN_ENABLED` (off in prod)
+- Test fixtures use distinctive `test-*-do-not-use` passwords;
+  production admins are created via the Supabase dashboard.
+- `/api/test/signin` and `/api/login/magic-link` both honor
+  `E2E_TEST_LOGIN_ENABLED=1` — the magic-link route skips the actual
+  `signInWithOtp` and returns the `next` URL + `email_redirect_to` in
+  the JSON response so Playwright can drive the callback page
+  directly without burning real email sends. Off in prod.
 
 ### Phase 5-prep — Legal pages + global footer
 - Three trilingual public pages under `/[locale]/legal/`:
@@ -725,10 +750,21 @@ When to rotate:
 
 ## Admin Auth (Phase 5-prep)
 
-The admin surface is gated by an email + password sign-in flow at
-`/[locale]/login` backed by `supabase.auth.signInWithPassword`. The
-session is cookie-based via `@supabase/ssr` — no localStorage, no
-client-side token storage.
+`/[locale]/login` offers two sign-in methods backed by Supabase Auth and
+cookie-based `@supabase/ssr` sessions (no localStorage, no client-side
+token storage):
+
+- **Password** (`supabase.auth.signInWithPassword`) — the
+  admin-preferred path. Admins are provisioned manually in the Supabase
+  dashboard with auto-confirmed emails.
+- **Magic link** (`supabase.auth.signInWithOtp`) — the collector-
+  friendly path. The link redirects to
+  `/auth/callback?next=/[locale]/me`; on a successful code exchange
+  the callback checks `profiles.is_admin` and reroutes admins to
+  `/[locale]/admin`.
+
+The same `is_admin` check decides the landing surface for both
+methods.
 
 **Operational notes:**
 

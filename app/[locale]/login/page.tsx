@@ -36,11 +36,33 @@ export default async function LoginPage({ params }: PageProps) {
   const labels: LoginFormLabels = {
     email: t("email"),
     password: t("password"),
+    divider: t("divider"),
     submit: t("submit"),
     submitting: t("submitting"),
     errors: {
       validation: t("errors.validation"),
       invalid: t("errors.invalid"),
+    },
+    magicLink: {
+      heading: t("magicLink.heading"),
+      helper: t("magicLink.helper"),
+      cta: t("magicLink.cta"),
+      sending: t("magicLink.sending"),
+      success: t("magicLink.success"),
+      resend: t("magicLink.resend"),
+      // Pre-interpolate with the literal placeholder so the client can
+      // substitute the live countdown value without pulling next-intl
+      // into the bundle.
+      resendIn: t("magicLink.resendIn", { seconds: "{seconds}" }),
+      errors: {
+        emailValidation: t("errors.emailValidation"),
+        rateLimit: t("magicLink.errors.rateLimit"),
+        generic: t("magicLink.errors.generic"),
+      },
+    },
+    passwordSection: {
+      heading: t("passwordSection.heading"),
+      helper: t("passwordSection.helper"),
     },
   };
 

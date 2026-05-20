@@ -332,9 +332,28 @@
     "password": "Mot de passe",
     "submit": "Se connecter",
     "submitting": "Connexion…",
+    "divider": "ou",
     "errors": {
       "invalid": "Email ou mot de passe incorrect",
-      "validation": "Saisissez un email et un mot de passe valides."
+      "validation": "Saisissez un email et un mot de passe valides.",
+      "emailValidation": "Saisissez une adresse email valide."
+    },
+    "magicLink": {
+      "heading": "Connexion par lien",
+      "helper": "Pas de mot de passe ? On vous envoie un lien sécurisé.",
+      "cta": "Recevoir un lien de connexion",
+      "sending": "Envoi…",
+      "success": "Vérifiez votre boîte mail — un lien de connexion vous a été envoyé.",
+      "resend": "Renvoyer le lien",
+      "resendIn": "Renvoyer dans {seconds}s",
+      "errors": {
+        "rateLimit": "Trop de demandes, réessayez dans quelques minutes.",
+        "generic": "Impossible d'envoyer l'email. Réessayez bientôt."
+      }
+    },
+    "passwordSection": {
+      "heading": "Connexion par mot de passe",
+      "helper": "Réservé aux administrateurs."
     }
   },
   "footer": {

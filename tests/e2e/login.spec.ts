@@ -85,6 +85,87 @@ test.describe("Phase 5-prep — login", () => {
       expect(res?.status()).toBeLessThan(400);
       await expect(page.getByTestId("login-card")).toBeVisible();
     });
+
+    test("/login surfaces both magic-link and password methods", async ({
+      page,
+    }) => {
+      await page.goto("/en/login");
+      // Both forms render on the same card, separated by a divider.
+      await expect(page.getByTestId("login-magic-link-form")).toBeVisible();
+      await expect(page.getByTestId("login-password-form")).toBeVisible();
+      await expect(page.getByTestId("login-divider")).toBeVisible();
+      // The primary magic-link CTA + secondary password submit are both
+      // reachable from the same screen.
+      await expect(page.getByTestId("login-magic-link-submit")).toBeVisible();
+      await expect(page.getByTestId("login-submit")).toBeVisible();
+    });
+
+    test("magic-link submit with invalid email shows a field-level error", async ({
+      page,
+    }) => {
+      await page.goto("/en/login");
+      await page.getByTestId("login-email").fill("not-an-email");
+      await page.getByTestId("login-magic-link-submit").click();
+      const err = page.getByTestId("login-magic-link-error");
+      await expect(err).toBeVisible();
+      await expect(err).toHaveAttribute("data-error-code", "emailValidation");
+      // No success state appeared.
+      await expect(page.getByTestId("login-magic-link-success")).toHaveCount(0);
+      // Still on /login, not navigated anywhere.
+      expect(new URL(page.url()).pathname).toBe("/en/login");
+    });
+
+    test("magic-link submit with a valid email shows success + disables the email field", async ({
+      page,
+    }) => {
+      await page.goto("/en/login");
+      await page.getByTestId("login-email").fill(SEED_COLLECTOR.email);
+      await page.getByTestId("login-magic-link-submit").click();
+
+      // signInWithOtp is suppressed in test mode; the API still returns
+      // ok and the form flips to the success state with the resend
+      // affordance + a disabled email input.
+      await expect(
+        page.getByTestId("login-magic-link-success"),
+      ).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("login-email")).toBeDisabled();
+      await expect(page.getByTestId("login-magic-link-resend")).toBeVisible();
+      // No error surfaced.
+      await expect(page.getByTestId("login-magic-link-error")).toHaveCount(0);
+    });
+
+    test("magic-link API returns the next URL synchronously in test mode", async ({
+      request,
+    }) => {
+      // The route mirrors claim/transfer initiate: in test mode it
+      // skips signInWithOtp and surfaces the next path the spec would
+      // otherwise have to extract from an email.
+      const res = await request.post("/api/login/magic-link", {
+        data: { email: SEED_COLLECTOR.email, locale: "en" },
+      });
+      expect(res.ok()).toBeTruthy();
+      const body = (await res.json()) as {
+        ok?: boolean;
+        next?: string;
+        email_redirect_to?: string;
+      };
+      expect(body.ok).toBe(true);
+      expect(body.next).toBe("/en/me");
+      expect(body.email_redirect_to).toMatch(
+        /\/auth\/callback\?next=%2Fen%2Fme$/,
+      );
+    });
+
+    test("magic-link API rejects an obviously malformed email with 400", async ({
+      request,
+    }) => {
+      const res = await request.post("/api/login/magic-link", {
+        data: { email: "not-an-email", locale: "en" },
+      });
+      expect(res.status()).toBe(400);
+      const body = (await res.json()) as { error?: string };
+      expect(body.error).toBe("validation_error");
+    });
   });
 
   test.describe("admin-authenticated flows", () => {

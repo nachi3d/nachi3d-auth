@@ -332,9 +332,28 @@
     "password": "Password",
     "submit": "Sign in",
     "submitting": "Signing in…",
+    "divider": "or",
     "errors": {
       "invalid": "Invalid credentials",
-      "validation": "Enter a valid email and password."
+      "validation": "Enter a valid email and password.",
+      "emailValidation": "Enter a valid email address."
+    },
+    "magicLink": {
+      "heading": "Sign in with a link",
+      "helper": "No password? We'll email you a secure sign-in link.",
+      "cta": "Send me a sign-in link",
+      "sending": "Sending…",
+      "success": "Check your inbox — a sign-in link is on the way.",
+      "resend": "Send another link",
+      "resendIn": "Resend available in {seconds}s",
+      "errors": {
+        "rateLimit": "Too many requests. Try again in a few minutes.",
+        "generic": "Couldn't send the email. Try again shortly."
+      }
+    },
+    "passwordSection": {
+      "heading": "Sign in with a password",
+      "helper": "Admins sign in here."
     }
   },
   "footer": {
