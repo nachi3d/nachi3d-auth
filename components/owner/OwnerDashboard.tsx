@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { BackLink } from "@/components/ui/BackLink";
@@ -106,6 +106,12 @@ interface DashboardProps {
     | "admin_only"
     | null;
   labels: OwnerDashboardLabels;
+  // Rendered immediately after the profile section, before the owned
+  // grid. Server-only state (e.g. has_password() from auth.users) is
+  // fetched in the page and the resulting interactive subsection is
+  // piped in here so OwnerDashboard stays presentational and unaware of
+  // password-specific concerns.
+  passwordSlot?: ReactNode;
 }
 
 export function OwnerDashboard({
@@ -116,6 +122,7 @@ export function OwnerDashboard({
   currentUserId,
   banner,
   labels,
+  passwordSlot,
 }: DashboardProps) {
   const [transferPiece, setTransferPiece] = useState<OwnedPiece | null>(null);
 
@@ -162,6 +169,8 @@ export function OwnerDashboard({
         initial={profile}
         labels={labels.profile}
       />
+
+      {passwordSlot}
 
       <OwnedGrid
         owned={owned}

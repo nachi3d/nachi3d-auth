@@ -12,7 +12,9 @@ import {
 } from "@/lib/server/transfers";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 import { OwnerDashboard } from "@/components/owner/OwnerDashboard";
+import { PasswordSection } from "@/components/owner/PasswordSection";
 import { PublicHeader } from "@/components/layout/PublicHeader";
+import { hasPassword as fetchHasPassword } from "@/lib/server/password";
 import { signToken } from "@/lib/hmac";
 
 export const dynamic = "force-dynamic";
@@ -64,15 +66,17 @@ export default async function MePage({ params, searchParams }: PageProps) {
                 ? ("admin_only" as const)
                 : null;
 
-  const [profile, pieces, transfers] = await Promise.all([
+  const [profile, pieces, transfers, hasPassword] = await Promise.all([
     getProfileById(user.id),
     listOwnedPieces(user.id),
     listTransfersForOwner(user.id),
+    fetchHasPassword(),
   ]);
 
   const t = await getTranslations("me");
   const tNav = await getTranslations("nav");
   const tStatus = await getTranslations("me.transferStatus");
+  const tPassword = await getTranslations("me.password");
 
   // Pre-compute verification URLs (HMAC tokens) for each owned piece
   // so the dashboard can link straight to /v/[uid]?t=... without
@@ -123,6 +127,31 @@ export default async function MePage({ params, searchParams }: PageProps) {
         }))}
         currentUserId={user.id}
         banner={banner}
+        passwordSlot={
+          <PasswordSection
+            locale={locale}
+            hasPassword={hasPassword}
+            labels={{
+              title: tPassword("title"),
+              helper: tPassword("helper"),
+              setButton: tPassword("setButton"),
+              changeButton: tPassword("changeButton"),
+              alreadySet: tPassword("alreadySet"),
+              newPasswordLabel: tPassword("newPasswordLabel"),
+              confirmPasswordLabel: tPassword("confirmPasswordLabel"),
+              submitButton: tPassword("submitButton"),
+              submitting: tPassword("submitting"),
+              cancel: tPassword("cancel"),
+              success: tPassword("success"),
+              errors: {
+                mismatch: tPassword("errors.mismatch"),
+                tooShort: tPassword("errors.tooShort"),
+                tooWeak: tPassword("errors.tooWeak"),
+                generic: tPassword("errors.generic"),
+              },
+            }}
+          />
+        }
         labels={{
           heading: t("heading"),
           subtitle: t("subtitle", { email: user.email ?? "" }),

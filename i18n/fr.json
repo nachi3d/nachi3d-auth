@@ -203,6 +203,25 @@
       "accepted": "Accepté",
       "revoked": "Révoqué",
       "expired": "Expiré"
+    },
+    "password": {
+      "title": "Mot de passe",
+      "helper": "Optionnel. Permet de vous reconnecter sans lien magique.",
+      "setButton": "Définir un mot de passe",
+      "changeButton": "Changer",
+      "alreadySet": "Mot de passe défini ✓",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "confirmPasswordLabel": "Confirmer le mot de passe",
+      "submitButton": "Enregistrer le mot de passe",
+      "submitting": "Enregistrement…",
+      "cancel": "Annuler",
+      "success": "Mot de passe enregistré.",
+      "errors": {
+        "mismatch": "Les mots de passe ne correspondent pas.",
+        "tooShort": "Utilisez au moins 8 caractères.",
+        "tooWeak": "Incluez au moins une lettre et un chiffre.",
+        "generic": "Impossible d'enregistrer le mot de passe. Réessayez."
+      }
     }
   },
   "admin": {

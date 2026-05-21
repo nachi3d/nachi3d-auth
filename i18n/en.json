@@ -203,6 +203,25 @@
       "accepted": "Accepted",
       "revoked": "Revoked",
       "expired": "Expired"
+    },
+    "password": {
+      "title": "Password",
+      "helper": "Optional. Lets you sign in without a magic link.",
+      "setButton": "Set a password",
+      "changeButton": "Change",
+      "alreadySet": "Password set ✓",
+      "newPasswordLabel": "New password",
+      "confirmPasswordLabel": "Confirm password",
+      "submitButton": "Save password",
+      "submitting": "Saving…",
+      "cancel": "Cancel",
+      "success": "Password saved.",
+      "errors": {
+        "mismatch": "Passwords do not match.",
+        "tooShort": "Use at least 8 characters.",
+        "tooWeak": "Include at least one letter and one digit.",
+        "generic": "Couldn't save the password. Try again."
+      }
     }
   },
   "admin": {
