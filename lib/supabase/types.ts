@@ -222,6 +222,14 @@ export type Database = {
         Args: Record<string, never>;
         Returns: number;
       };
+      has_password: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      e2e_clear_user_password: {
+        Args: { p_user_id: string };
+        Returns: void;
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
