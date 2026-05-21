@@ -397,6 +397,16 @@ Before merging any branch, verify all of these still work:
 | /me — owned grid | Signed-in collector who owns a piece | `me-owned-item` with `data-piece-id` testid visible; empty state hidden |
 | /me — profile editor persistence | Edit display_name + country, save | `me-banner[data-banner-code=profile_saved]` visible; reload preserves the new values |
 | /me — transfer history | Past transfers from/to the current user | `me-history-item` rows render with the correct `data-status`; "Revoke" button appears only on pending outgoing rows |
+| /me — password subsection (no password) | Signed-in collector whose `auth.users.encrypted_password` is NULL | `me-password[data-has-password=false]` visible; `me-password-set` button visible; `me-password-change` is absent |
+| /me — password subsection (password set) | Signed-in admin (canonical password) on `/me` | `me-password[data-has-password=true]` visible; `me-password-summary` reads "Password set ✓"; `me-password-change` button visible |
+| /me — set password happy path | Collector submits `me-password-form` with a valid password + matching confirm | `me-password-success` visible; section flips to `data-has-password=true`; form collapses back to summary state |
+| /me — set password → password sign-in | After setting a password on /me, sign out, then submit `login-password-form` with the same email + new password | Lands on `/[locale]/me` with `me-dashboard` visible (no re-prompt) |
+| /me — password mismatch | Submit `me-password-form` with two non-matching values | `me-password-error[data-error-code=mismatch]` visible; form stays expanded; password unchanged |
+| /me — password too short | Submit `me-password-form` with a value under 8 characters | `me-password-error[data-error-code=tooShort]` visible |
+| /me — password too weak | Submit `me-password-form` with 8+ letters but no digit | `me-password-error[data-error-code=tooWeak]` visible |
+| /me — magic link still works after no-password state | `POST /api/login/magic-link` for a collector whose `encrypted_password` is NULL | 200 + `{ ok: true, next: "/en/me", … }` — the password-less account is fully usable via magic link |
+| /me — password API unauthenticated | `POST /[locale]/api/me/password` with no session | 401 `unauthenticated`; no DB write |
+| `has_password()` RPC | Service-role call to `public.has_password()` | Function exists, returns `false` because the service-role caller has no `auth.uid()` (one-bit self-only check) |
 | PublicHeader — unauthenticated | `/[locale]/gallery` with no session | `public-header-login` link visible top-right; href is `/[locale]/login`; click navigates there |
 | PublicHeader — authenticated cluster | `/[locale]/gallery` with collector session | `public-header-user` cluster visible; `public-header-avatar` shows a single uppercase initial; `public-header-login` is absent |
 | PublicHeader — dropdown menu | Click `public-header-trigger` | `public-header-menu` opens with `role="menu"`; items "My pieces" + "Sign out" render with `role="menuitem"`; Esc closes; click-outside closes |
@@ -457,7 +467,7 @@ a back link, sitting above the page `<h1>`:
 | `/[locale]/v/[uid]` | Public verification page; renders the optional physical-specs section after the provenance timeline and a prominent variant badge near the character name (Phase 5-prep) | Public |
 | `/[locale]/gallery` | Public gallery of published pieces (Phase 4); cards link with `?from=gallery` so verification shows a back link | Public |
 | `/[locale]/login` | Admin email + password sign-in (Phase 5-prep) | Public |
-| `/[locale]/me` | Owner dashboard — owned grid + profile editor + transfer history (Phase 5) | Logged in |
+| `/[locale]/me` | Owner dashboard — owned grid + profile editor + optional password subsection (Phase 5-prep) + transfer history (Phase 5) | Logged in |
 | `/[locale]/claim/[token]` | Claim handler — finalizes a magic-link claim and redirects to `/me?claimed=1` (Phase 5) | Logged in (session set by `/auth/callback`) |
 | `/[locale]/transfer/[token]` | Transfer handler — recipient preview + accept (Phase 5) | Logged in (recipient email must match) |
 | `/[locale]/admin` | Admin home | Admin only |
@@ -478,6 +488,7 @@ a back link, sitting above the page `<h1>`:
 | `POST /api/transfer/accept` | Recipient confirms acceptance; calls `accept_transfer(...)` RPC (Phase 5) | Logged-in recipient |
 | `POST /api/transfer/revoke` | Owner cancels a pending transfer (Phase 5) | Logged-in `from_owner_id` |
 | `POST /[locale]/api/me/profile` | Authenticated self-update of `profiles.display_name` + `country` (Phase 5) | Logged in |
+| `POST /[locale]/api/me/password` | Authenticated self-set/rotate of the user's password via `supabase.auth.updateUser` (Phase 5-prep). No `current_password` challenge — the cookie session is the proof. Magic-link recovery remains available for everyone. | Logged in |
 | `publicSignOutAction` (server action) | Owner-facing logout invoked from PublicHeader's dropdown; redirects to the validated `next` form field (Phase 5-prep) | Any session |
 | `POST /api/login/magic-link` | Send a passwordless sign-in link via `signInWithOtp`; in test mode returns the `next` URL synchronously (Phase 5-prep) | Public |
 | `GET /auth/callback?code=…&next=…` | Supabase Auth magic-link redirect target; exchanges OTP for cookie session and forwards to `next`, rerouting `/[locale]/me` to `/[locale]/admin` for admins (Phase 5 / 5-prep) | Public |
@@ -487,6 +498,7 @@ a back link, sitting above the page `<h1>`:
 | `/[locale]/legal/privacy` | Privacy policy / GDPR disclosure (Phase 5-prep) | Public |
 | `/[locale]/legal/terms` | Terms of use (Phase 5-prep) | Public |
 | `POST /api/test/signin` | Test-only password signin, gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
+| `POST /api/test/clear-password` | Test-only helper that nulls `auth.users.encrypted_password` for a user id via the `e2e_clear_user_password` service-role RPC; gated by `E2E_TEST_LOGIN_ENABLED=1` | Disabled in prod |
 
 ### PublicHeader presence rules (Phase 5-prep)
 
@@ -652,6 +664,56 @@ When to rotate:
   `signInWithOtp` and returns the `next` URL + `email_redirect_to` in
   the JSON response so Playwright can drive the callback page
   directly without burning real email sends. Off in prod.
+
+### Phase 5-prep — Optional password setup for collectors
+- Magic link stays the primary sign-in for collectors. The new
+  `/me` "Mot de passe / Password / كلمة المرور" subsection lets
+  anyone optionally set a password on top of that so repeat visits
+  don't require an email every time. Magic link remains available
+  for password-set and password-less accounts alike — no recovery
+  flow needed because falling back to the magic link IS the recovery
+  path.
+- `public.has_password()` is the source-of-truth check
+  (`supabase/migrations/20260520000000_has_password_helper.sql`). It's
+  a SECURITY DEFINER SQL function scoped to `auth.uid()` so a caller
+  can only ask about themselves; returns one bit
+  (`encrypted_password IS NOT NULL`). Callable by `authenticated` +
+  `service_role` only.
+- Server module `lib/server/password.ts`: `hasPassword()` reads the
+  RPC; `setUserPassword(body)` zod-validates then calls
+  `supabase.auth.updateUser({ password })` against the cookie session.
+  No `current_password` challenge — the session cookie is the proof
+  of identity, and the magic-link recovery path always exists.
+- Validation (`lib/validation/password.ts`): minimum 8 characters
+  with at least one letter and one digit, and the confirm field must
+  match. Deliberately not over-engineered — a strength meter,
+  breach-list lookup, or character-class mandate would just push
+  collectors toward "good enough" forgotten passwords when the magic
+  link is the always-available recovery.
+- Client component `components/owner/PasswordSection.tsx` is mounted
+  by `app/[locale]/me/page.tsx` via the `passwordSlot` prop on
+  `OwnerDashboard`, so the dashboard stays presentational and
+  unaware of password-specific state. Two summary variants —
+  `me-password-set` button when no password yet, `me-password-change`
+  link + "Mot de passe défini ✓" copy when one is set — both expand
+  to the same inline form (new + confirm). On success the form
+  collapses back to the summary state and `me-password-success`
+  flashes.
+- API route `POST /[locale]/api/me/password`: auth required, mirrors
+  the same zod schema, returns `{ ok: true }` or
+  `{ error: 'weak_password' | 'validation_error', field: 'tooShort' |
+  'tooWeak' | 'mismatch' }`. No password value is ever logged.
+- Rate limiting is delegated to Supabase Auth (server-side, per-user).
+  We don't ship an in-app rate limiter because Supabase already
+  enforces one and a second layer would just make the failure mode
+  harder to debug.
+- E2E coverage in `tests/e2e/password.spec.ts`. The "collector
+  without a password" specs rely on `e2e_clear_user_password(uuid)`,
+  a service-role-only SECURITY DEFINER RPC shipped in the same
+  migration: Supabase JS's `auth.admin.updateUserById` cannot null
+  an existing `encrypted_password`, so we expose a tightly-scoped
+  helper. The seed always restores the canonical test password on
+  the next `seedRemote()` run.
 
 ### Phase 5-prep — Legal pages + global footer
 - Three trilingual public pages under `/[locale]/legal/`:
